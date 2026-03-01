@@ -3,443 +3,280 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stashify — AI Knowledge Curator</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c0b0f">
+<title>Stashify</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===================== ROOT ===================== */
 :root {
   --bg: #0c0b0f;
-  --surface: #141218;
-  --surface2: #1c1a22;
-  --surface3: #242130;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
+  --surface: #161419;
+  --surface2: #1e1b24;
+  --surface3: #26222f;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
   --text: #f0ecf8;
   --text2: #a098b8;
   --text3: #5e5875;
+  --accent: #7c3aed;
+  --accent-light: rgba(124,58,237,0.15);
   --claude: #d97706;
   --gpt: #10a37f;
-  --accent: #7c3aed;
-  --accent-glow: rgba(124,58,237,0.25);
   --danger: #ef4444;
-  --radius: 14px;
-  --radius-sm: 8px;
+  --success: #10b981;
+  --r: 16px;
+  --r-sm: 10px;
+  --nav-h: 76px;
+  --top-h: 60px;
 }
 
-- { margin: 0; padding: 0; box-sizing: border-box; }
+- { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-body {
+html, body {
 font-family: ‘Syne’, sans-serif;
 background: var(–bg);
 color: var(–text);
-min-height: 100vh;
-overflow-x: hidden;
+height: 100%;
+overflow: hidden;
 }
 
-/* ===================== NOISE OVERLAY ===================== */
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
-pointer-events: none;
-z-index: 9999;
-opacity: 0.4;
-}
-
-/* ===================== LAYOUT ===================== */
-.app { display: flex; min-height: 100vh; }
-
-/* ===================== SIDEBAR ===================== */
-.sidebar {
-width: 260px;
-background: var(–surface);
-border-right: 1px solid var(–border);
+/* ── LAYOUT ── */
+.app {
 display: flex;
 flex-direction: column;
-position: fixed;
-height: 100vh;
-overflow-y: auto;
-z-index: 200;
-flex-shrink: 0;
-}
-
-.logo-wrap {
-padding: 28px 22px 22px;
-border-bottom: 1px solid var(–border);
-}
-
-.logo {
-font-family: ‘Instrument Serif’, serif;
-font-size: 26px;
-font-style: italic;
-color: var(–text);
-letter-spacing: -0.5px;
-line-height: 1;
-}
-
-.logo em { color: var(–accent); font-style: normal; }
-
-.logo-sub {
-font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text3);
-margin-top: 4px;
-letter-spacing: 1.5px;
-text-transform: uppercase;
-}
-
-/* AI PROVIDER TOGGLE */
-.provider-toggle {
-margin: 16px 14px;
-background: var(–surface2);
-border-radius: var(–radius-sm);
-padding: 4px;
-display: flex;
-border: 1px solid var(–border);
-}
-
-.prov-btn {
-flex: 1;
-padding: 8px 6px;
-border-radius: 6px;
-border: none;
-font-family: ‘Syne’, sans-serif;
-font-size: 11px;
-font-weight: 700;
-cursor: pointer;
-background: none;
-color: var(–text3);
-transition: all 0.2s;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 5px;
-letter-spacing: 0.5px;
-}
-
-.prov-btn.active[data-prov=“claude”] { background: rgba(217,119,6,0.15); color: var(–claude); }
-.prov-btn.active[data-prov=“gpt”] { background: rgba(16,163,127,0.15); color: var(–gpt); }
-
-.prov-dot {
-width: 6px;
-height: 6px;
-border-radius: 50%;
-background: currentColor;
-}
-
-/* NAV */
-.nav { padding: 10px 10px; flex: 1; }
-
-.nav-group-label {
-font-size: 9px;
-font-family: ‘Fira Code’, monospace;
-text-transform: uppercase;
-letter-spacing: 2px;
-color: var(–text3);
-padding: 14px 10px 6px;
-font-weight: 400;
-}
-
-.nav-item {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 9px 12px;
-border-radius: var(–radius-sm);
-cursor: pointer;
-font-size: 13px;
-font-weight: 600;
-color: var(–text2);
-transition: all 0.15s;
-margin-bottom: 1px;
-position: relative;
-}
-
-.nav-item:hover { background: var(–surface2); color: var(–text); }
-
-.nav-item.active {
-background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.08));
-color: var(–text);
-border: 1px solid rgba(124,58,237,0.2);
-}
-
-.nav-item.active::before {
-content: ‘’;
-position: absolute;
-left: 0; top: 20%; bottom: 20%;
-width: 3px;
-border-radius: 0 2px 2px 0;
-background: var(–accent);
-}
-
-.nav-icon { font-size: 15px; width: 20px; text-align: center; }
-
-.nav-badge {
-margin-left: auto;
-background: var(–surface3);
-color: var(–text3);
-font-size: 10px;
-font-weight: 700;
-padding: 2px 7px;
-border-radius: 20px;
-font-family: ‘Fira Code’, monospace;
-}
-
-.nav-item.active .nav-badge { background: rgba(124,58,237,0.3); color: var(–accent); }
-
-/* API KEYS */
-.api-section {
-padding: 14px;
-border-top: 1px solid var(–border);
-}
-
-.api-section-title {
-font-size: 9px;
-font-family: ‘Fira Code’, monospace;
-text-transform: uppercase;
-letter-spacing: 2px;
-color: var(–text3);
-margin-bottom: 10px;
-}
-
-.api-key-row {
-margin-bottom: 10px;
-}
-
-.api-key-label {
-font-size: 10px;
-font-weight: 700;
-margin-bottom: 5px;
-display: flex;
-align-items: center;
-gap: 5px;
-}
-
-.api-key-label.claude-label { color: var(–claude); }
-.api-key-label.gpt-label { color: var(–gpt); }
-
-.api-key-input {
-width: 100%;
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 8px 10px;
-font-size: 11px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text2);
-outline: none;
-transition: border-color 0.15s;
-}
-
-.api-key-input:focus { border-color: var(–accent); color: var(–text); }
-.api-key-input::placeholder { color: var(–text3); }
-
-.api-status {
-font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-margin-top: 4px;
-display: flex;
-align-items: center;
-gap: 4px;
-}
-
-.api-status.ok { color: #10b981; }
-.api-status.err { color: var(–danger); }
-
-/* ===================== MAIN ===================== */
-.main {
-margin-left: 260px;
-flex: 1;
-display: flex;
-flex-direction: column;
-min-height: 100vh;
-}
-
-.topbar {
-padding: 18px 36px;
-background: rgba(12,11,15,0.85);
-backdrop-filter: blur(20px);
-border-bottom: 1px solid var(–border);
-display: flex;
-align-items: center;
-justify-content: space-between;
-position: sticky;
-top: 0;
-z-index: 100;
-}
-
-.topbar-left { display: flex; align-items: center; gap: 14px; }
-
-.page-title {
-font-family: ‘Instrument Serif’, serif;
-font-size: 22px;
-font-style: italic;
-letter-spacing: -0.3px;
-}
-
-.provider-badge {
-font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-font-weight: 500;
-padding: 4px 10px;
-border-radius: 20px;
-letter-spacing: 0.5px;
-}
-
-.provider-badge.claude { background: rgba(217,119,6,0.15); color: var(–claude); border: 1px solid rgba(217,119,6,0.2); }
-.provider-badge.gpt { background: rgba(16,163,127,0.15); color: var(–gpt); border: 1px solid rgba(16,163,127,0.2); }
-
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-
-/* SEARCH */
-.search-wrap {
-position: relative;
-display: flex;
-align-items: center;
-}
-
-.search-input {
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 8px 14px 8px 34px;
-font-family: ‘Syne’, sans-serif;
-font-size: 13px;
-color: var(–text);
-outline: none;
-width: 220px;
-transition: all 0.2s;
-}
-
-.search-input:focus { border-color: var(–accent); width: 280px; }
-.search-input::placeholder { color: var(–text3); }
-
-.search-icon {
-position: absolute;
-left: 10px;
-color: var(–text3);
-font-size: 13px;
-pointer-events: none;
-}
-
-/* BUTTONS */
-.btn {
-padding: 9px 18px;
-border-radius: var(–radius-sm);
-font-family: ‘Syne’, sans-serif;
-font-size: 13px;
-font-weight: 700;
-cursor: pointer;
-border: none;
-transition: all 0.15s;
-display: flex;
-align-items: center;
-gap: 6px;
-letter-spacing: 0.3px;
-}
-
-.btn-primary {
-background: var(–accent);
-color: #fff;
-box-shadow: 0 0 0 0 var(–accent-glow);
-}
-
-.btn-primary:hover {
-background: #6d28d9;
-box-shadow: 0 0 20px var(–accent-glow);
-transform: translateY(-1px);
-}
-
-.btn-ghost {
-background: var(–surface2);
-color: var(–text2);
-border: 1px solid var(–border);
-}
-
-.btn-ghost:hover { background: var(–surface3); color: var(–text); }
-
-.btn-danger { background: rgba(239,68,68,0.15); color: var(–danger); border: 1px solid rgba(239,68,68,0.2); }
-.btn-danger:hover { background: rgba(239,68,68,0.25); }
-
-.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-.btn-sm { padding: 6px 12px; font-size: 11px; }
-
-/* ===================== CONTENT ===================== */
-.content { padding: 30px 36px; flex: 1; }
-
-/* VIEWS */
-.view { display: none; animation: viewIn 0.3s ease both; }
-.view.active { display: block; }
-
-@keyframes viewIn {
-from { opacity: 0; transform: translateY(10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-/* ===================== HOME / STASH ===================== */
-.stash-panel {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 28px;
-margin-bottom: 30px;
+height: 100dvh;
+max-width: 430px;
+margin: 0 auto;
 position: relative;
 overflow: hidden;
 }
 
-.stash-panel::before {
-content: ‘’;
-position: absolute;
-top: -60px; right: -60px;
-width: 200px; height: 200px;
-border-radius: 50%;
-background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
-pointer-events: none;
-}
-
-.panel-header {
+/* ── TOPBAR ── */
+.topbar {
+height: var(–top-h);
+background: var(–bg);
+border-bottom: 1px solid var(–border);
 display: flex;
 align-items: center;
 justify-content: space-between;
-margin-bottom: 22px;
+padding: 0 18px;
+flex-shrink: 0;
+position: relative;
+z-index: 50;
+}
+
+.topbar-logo {
+font-family: ‘Instrument Serif’, serif;
+font-style: italic;
+font-size: 22px;
+letter-spacing: -0.3px;
+}
+
+.topbar-logo em { color: var(–accent); font-style: normal; }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.prov-toggle {
+display: flex;
+background: var(–surface2);
+border-radius: 20px;
+padding: 3px;
+border: 1px solid var(–border);
+gap: 2px;
+}
+
+.prov-btn {
+padding: 5px 12px;
+border-radius: 16px;
+border: none;
+font-family: ‘Syne’, sans-serif;
+font-size: 11px;
+font-weight: 700;
+cursor: pointer;
+background: none;
+color: var(–text3);
+transition: all 0.2s;
+}
+
+.prov-btn.active-claude { background: rgba(217,119,6,0.2); color: var(–claude); }
+.prov-btn.active-gpt { background: rgba(16,163,127,0.2); color: var(–gpt); }
+
+.icon-btn {
+width: 36px; height: 36px;
+border-radius: 10px;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text2);
+font-size: 16px;
+display: flex; align-items: center; justify-content: center;
+cursor: pointer;
+transition: all 0.15s;
+}
+
+.icon-btn:active { background: var(–surface3); transform: scale(0.95); }
+
+/* ── SCROLL AREA ── */
+.scroll-area {
+flex: 1;
+overflow-y: auto;
+overflow-x: hidden;
+-webkit-overflow-scrolling: touch;
+padding: 16px 16px calc(var(–nav-h) + 16px);
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; animation: fadeUp 0.25s ease both; }
+
+@keyframes fadeUp {
+from { opacity:0; transform: translateY(12px); }
+to { opacity:1; transform: translateY(0); }
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+position: fixed;
+bottom: 0; left: 50%;
+transform: translateX(-50%);
+width: 100%;
+max-width: 430px;
+height: var(–nav-h);
+background: rgba(12,11,15,0.95);
+backdrop-filter: blur(20px);
+border-top: 1px solid var(–border);
+display: flex;
+align-items: flex-start;
+padding-top: 8px;
+z-index: 100;
+padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-tab {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+padding: 6px 4px;
+cursor: pointer;
+transition: all 0.15s;
+border: none;
+background: none;
+color: var(–text3);
+font-family: ‘Syne’, sans-serif;
+}
+
+.nav-tab:active { transform: scale(0.92); }
+
+.nav-tab.active { color: var(–accent); }
+
+.nav-icon {
+font-size: 22px;
+line-height: 1;
+position: relative;
+}
+
+.nav-label {
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 0.3px;
+}
+
+.nav-dot {
+position: absolute;
+top: -2px; right: -4px;
+width: 8px; height: 8px;
+border-radius: 50%;
+background: var(–accent);
+border: 2px solid var(–bg);
+display: none;
+}
+
+.nav-dot.show { display: block; }
+
+/* ── CARDS ── */
+.stats-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.stat-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–r);
+padding: 16px;
+position: relative;
+overflow: hidden;
+}
+
+.stat-card::after {
+content: attr(data-icon);
+position: absolute;
+right: 12px; top: 12px;
+font-size: 20px;
+opacity: 0.12;
+}
+
+.stat-num {
+font-family: ‘Instrument Serif’, serif;
+font-size: 32px;
+line-height: 1;
+margin-bottom: 4px;
+}
+
+.stat-label {
+font-size: 10px;
+font-weight: 700;
+color: var(–text3);
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+
+/* ── STASH PANEL ── */
+.panel {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–r);
+padding: 18px;
+margin-bottom: 16px;
 }
 
 .panel-title {
 font-family: ‘Instrument Serif’, serif;
-font-size: 20px;
+font-size: 18px;
 font-style: italic;
+margin-bottom: 14px;
 display: flex;
 align-items: center;
-gap: 10px;
+gap: 8px;
 }
 
-/* TABS */
 .tabs {
 display: flex;
-gap: 0;
 background: var(–surface2);
-border-radius: var(–radius-sm);
+border-radius: var(–r-sm);
 padding: 3px;
+gap: 2px;
+margin-bottom: 14px;
 border: 1px solid var(–border);
-width: fit-content;
-margin-bottom: 18px;
 }
 
 .tab {
-padding: 7px 16px;
-border-radius: 6px;
+flex: 1;
+padding: 8px 4px;
+border-radius: 8px;
+border: none;
+font-family: ‘Syne’, sans-serif;
 font-size: 12px;
 font-weight: 700;
 cursor: pointer;
+background: none;
 color: var(–text3);
 transition: all 0.15s;
-border: none;
-background: none;
-font-family: ‘Syne’, sans-serif;
-letter-spacing: 0.3px;
 }
 
 .tab.active {
@@ -448,327 +285,168 @@ color: var(–text);
 box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
-/* TEXTAREA */
-.stash-textarea {
+textarea, input[type=text], input[type=url], input[type=password], select {
 width: 100%;
-min-height: 130px;
 background: var(–surface2);
 border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 14px 16px;
+border-radius: var(–r-sm);
+padding: 13px 14px;
 font-family: ‘Syne’, sans-serif;
-font-size: 13.5px;
-resize: vertical;
-outline: none;
+font-size: 14px;
 color: var(–text);
+outline: none;
 transition: border-color 0.2s;
-line-height: 1.65;
+-webkit-appearance: none;
+appearance: none;
 }
 
-.stash-textarea:focus { border-color: rgba(124,58,237,0.5); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
-.stash-textarea::placeholder { color: var(–text3); }
-
-.stash-url-input {
-width: 100%;
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 12px 16px;
-font-family: ‘Fira Code’, monospace;
-font-size: 12px;
-outline: none;
-color: var(–text);
-transition: border-color 0.2s;
+textarea {
+resize: none;
+min-height: 120px;
+line-height: 1.6;
 }
 
-.stash-url-input:focus { border-color: rgba(124,58,237,0.5); }
-.stash-url-input::placeholder { color: var(–text3); }
+textarea:focus, input:focus { border-color: rgba(124,58,237,0.5); }
+textarea::placeholder, input::placeholder { color: var(–text3); }
+select { cursor: pointer; }
+select option { background: var(–surface2); }
 
-.panel-row {
+.input-row {
+display: flex;
+gap: 8px;
+margin-top: 10px;
+}
+
+.input-row select { flex: 1; }
+
+/* ── BUTTONS ── */
+.btn {
 display: flex;
 align-items: center;
-gap: 10px;
-margin-top: 14px;
-flex-wrap: wrap;
-}
-
-.panel-select {
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 9px 12px;
-font-family: ‘Syne’, sans-serif;
-font-size: 12px;
-font-weight: 600;
-color: var(–text2);
-outline: none;
-cursor: pointer;
-transition: border-color 0.15s;
-}
-
-.panel-select:focus { border-color: var(–accent); }
-.panel-select option { background: var(–surface2); }
-
-.count-select { max-width: 90px; }
-
-/* LOADING */
-.ai-loading {
-display: none;
-align-items: center;
-gap: 14px;
-padding: 18px 0 0;
-}
-
-.ai-loading.show { display: flex; }
-
-.ai-loader {
-display: flex;
-gap: 4px;
-}
-
-.ai-loader span {
-width: 6px;
-height: 6px;
-border-radius: 50%;
-background: var(–accent);
-animation: bounce 1s ease-in-out infinite;
-}
-
-.ai-loader span:nth-child(2) { animation-delay: 0.15s; background: var(–claude); }
-.ai-loader span:nth-child(3) { animation-delay: 0.3s; background: var(–gpt); }
-
-@keyframes bounce {
-0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
-40% { transform: scale(1.1); opacity: 1; }
-}
-
-.ai-loading-text {
-font-size: 12px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text3);
-animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-/* MANUAL INPUTS */
-.manual-title-input {
-width: 100%;
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 12px 16px;
+justify-content: center;
+gap: 6px;
+padding: 13px 20px;
+border-radius: var(–r-sm);
+border: none;
 font-family: ‘Syne’, sans-serif;
 font-size: 14px;
 font-weight: 700;
-outline: none;
-color: var(–text);
-margin-bottom: 10px;
-transition: border-color 0.2s;
-}
-
-.manual-title-input:focus { border-color: rgba(124,58,237,0.5); }
-.manual-title-input::placeholder { color: var(–text3); font-weight: 400; }
-
-/* ===================== STATS ROW ===================== */
-.stats-row {
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-gap: 14px;
-margin-bottom: 28px;
-}
-
-.stat-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 18px 20px;
-position: relative;
-overflow: hidden;
-transition: border-color 0.2s;
-}
-
-.stat-card:hover { border-color: var(–border2); }
-
-.stat-card::after {
-content: attr(data-icon);
-position: absolute;
-right: 14px;
-top: 14px;
-font-size: 22px;
-opacity: 0.15;
-}
-
-.stat-num {
-font-family: ‘Instrument Serif’, serif;
-font-size: 34px;
-font-weight: 400;
-line-height: 1;
-color: var(–text);
-margin-bottom: 4px;
-}
-
-.stat-label {
-font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text3);
-text-transform: uppercase;
-letter-spacing: 1px;
-}
-
-/* ===================== SECTION ===================== */
-.section-bar {
-display: flex;
-align-items: center;
-justify-content: space-between;
-margin-bottom: 18px;
-}
-
-.section-title {
-font-family: ‘Instrument Serif’, serif;
-font-size: 20px;
-font-style: italic;
-display: flex;
-align-items: center;
-gap: 10px;
-}
-
-.badge {
-font-family: ‘Fira Code’, monospace;
-font-size: 10px;
-background: var(–surface2);
-color: var(–text3);
-border: 1px solid var(–border);
-padding: 3px 9px;
-border-radius: 20px;
-font-weight: 400;
-}
-
-/* FILTER CHIPS */
-.filter-row {
-display: flex;
-gap: 6px;
-flex-wrap: wrap;
-margin-bottom: 20px;
-}
-
-.chip {
-padding: 5px 13px;
-border-radius: 20px;
-font-size: 11px;
-font-weight: 700;
 cursor: pointer;
-border: 1px solid var(–border);
-background: var(–surface);
-color: var(–text3);
 transition: all 0.15s;
+width: 100%;
+margin-top: 10px;
 letter-spacing: 0.3px;
 }
 
-.chip:hover { border-color: var(–border2); color: var(–text2); }
-.chip.active { background: var(–accent); color: #fff; border-color: var(–accent); box-shadow: 0 2px 10px rgba(124,58,237,0.3); }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; }
 
-/* ===================== CARDS ===================== */
-.cards-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-gap: 16px;
+.btn-primary { background: var(–accent); color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.3); }
+.btn-primary:active { background: #6d28d9; }
+.btn-ghost { background: var(–surface2); color: var(–text2); border: 1px solid var(–border); }
+.btn-ghost:active { background: var(–surface3); }
+.btn-sm { padding: 9px 14px; font-size: 12px; width: auto; margin-top: 0; }
+.btn-danger { background: rgba(239,68,68,0.12); color: var(–danger); border: 1px solid rgba(239,68,68,0.2); }
+
+/* ── LOADING ── */
+.ai-loader {
+display: none;
+align-items: center;
+gap: 10px;
+padding: 14px 0 4px;
 }
+
+.ai-loader.show { display: flex; }
+
+.dots { display: flex; gap: 5px; }
+
+.dots span {
+width: 7px; height: 7px;
+border-radius: 50%;
+background: var(–accent);
+animation: dotBounce 0.9s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) { animation-delay: 0.15s; background: var(–claude); }
+.dots span:nth-child(3) { animation-delay: 0.3s; background: var(–gpt); }
+
+@keyframes dotBounce {
+0%,80%,100% { transform: scale(0.6); opacity:0.4; }
+40% { transform: scale(1); opacity:1; }
+}
+
+.loader-text {
+font-size: 12px;
+color: var(–text3);
+font-weight: 600;
+animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+
+/* ── IDEA CARDS ── */
+.cards-list { display: flex; flex-direction: column; gap: 12px; }
 
 .idea-card {
 background: var(–surface);
 border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 20px;
-transition: all 0.2s cubic-bezier(0.34, 1.1, 0.64, 1);
+border-radius: var(–r);
+padding: 16px;
 position: relative;
 overflow: hidden;
-animation: cardIn 0.4s ease both;
-cursor: default;
+animation: fadeUp 0.3s ease both;
+transition: border-color 0.2s;
 }
 
-@keyframes cardIn {
-from { opacity: 0; transform: translateY(14px) scale(0.98); }
-to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.idea-card::after {
+.idea-card::before {
 content: ‘’;
 position: absolute;
 top: 0; left: 0; right: 0;
 height: 2px;
 background: var(–card-color, var(–accent));
-opacity: 0.7;
 }
 
-.idea-card:hover {
-transform: translateY(-4px);
-border-color: var(–border2);
-box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(124,58,237,0.1);
-}
+.idea-card:active { border-color: var(–border2); }
 
-.card-top {
-display: flex;
-align-items: flex-start;
-justify-content: space-between;
-margin-bottom: 12px;
-gap: 8px;
-}
-
-.card-topic-pill {
+.card-topic {
 display: inline-flex;
 align-items: center;
 gap: 5px;
 font-size: 10px;
 font-weight: 700;
-font-family: ‘Fira Code’, monospace;
 text-transform: uppercase;
 letter-spacing: 0.8px;
-padding: 3px 9px;
-border-radius: 20px;
-background: rgba(255,255,255,0.05);
-border: 1px solid rgba(255,255,255,0.08);
-}
-
-.card-provider-dot {
-width: 5px;
-height: 5px;
-border-radius: 50%;
-flex-shrink: 0;
-margin-top: 2px;
+margin-bottom: 10px;
 }
 
 .card-title {
 font-family: ‘Instrument Serif’, serif;
-font-size: 16.5px;
+font-size: 17px;
 line-height: 1.35;
-letter-spacing: -0.2px;
 margin-bottom: 8px;
-color: var(–text);
 }
 
 .card-body {
-font-size: 12.5px;
+font-size: 13px;
 color: var(–text2);
-line-height: 1.7;
-margin-bottom: 16px;
-font-weight: 400;
+line-height: 1.65;
+margin-bottom: 14px;
 }
 
 .card-tags {
 display: flex;
 flex-wrap: wrap;
 gap: 5px;
-margin-bottom: 14px;
+margin-bottom: 12px;
 }
 
-.card-tag {
+.tag {
 font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-padding: 2px 8px;
-background: rgba(124,58,237,0.1);
-color: rgba(167,139,250,0.8);
-border-radius: 4px;
+font-weight: 700;
+padding: 3px 8px;
+background: rgba(124,58,237,0.12);
+color: rgba(167,139,250,0.9);
+border-radius: 5px;
 border: 1px solid rgba(124,58,237,0.15);
 }
 
@@ -778,47 +456,27 @@ align-items: center;
 justify-content: space-between;
 padding-top: 12px;
 border-top: 1px solid var(–border);
-gap: 8px;
-}
-
-.card-meta {
-display: flex;
-flex-direction: column;
-gap: 2px;
-min-width: 0;
 }
 
 .card-source {
 font-size: 10px;
-font-family: ‘Fira Code’, monospace;
 color: var(–text3);
 overflow: hidden;
 text-overflow: ellipsis;
 white-space: nowrap;
-max-width: 160px;
+max-width: 150px;
+font-weight: 600;
 }
 
-.card-date {
-font-size: 9px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text3);
-opacity: 0.6;
-}
+.card-btns { display: flex; gap: 6px; }
 
-.card-actions {
-display: flex;
-gap: 4px;
-flex-shrink: 0;
-}
-
-.card-action {
-width: 28px;
-height: 28px;
-border-radius: 6px;
+.card-btn {
+width: 34px; height: 34px;
+border-radius: 8px;
 border: 1px solid var(–border);
 background: none;
 cursor: pointer;
-font-size: 12px;
+font-size: 15px;
 display: flex;
 align-items: center;
 justify-content: center;
@@ -826,203 +484,160 @@ transition: all 0.15s;
 color: var(–text3);
 }
 
-.card-action:hover { background: var(–surface2); color: var(–text); border-color: var(–border2); }
-.card-action.liked { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #ef4444; }
-.card-action.in-collection { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.2); color: #a78bfa; }
+.card-btn:active { background: var(–surface2); transform: scale(0.92); }
+.card-btn.liked { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); }
+.card-btn.in-coll { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); }
 
-/* EXPAND */
-.card-expand {
-font-size: 10px;
-color: var(–text3);
-font-family: ‘Fira Code’, monospace;
-cursor: pointer;
-margin-top: 6px;
-display: none;
-}
-
-.card-body.expandable { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-
-/* ===================== EMPTY STATE ===================== */
+/* ── EMPTY STATE ── */
 .empty {
 text-align: center;
-padding: 70px 20px;
-grid-column: 1 / -1;
+padding: 50px 20px;
 }
 
-.empty-icon { font-size: 52px; margin-bottom: 18px; opacity: 0.5; }
-.empty-title { font-family: ‘Instrument Serif’, serif; font-size: 22px; font-style: italic; margin-bottom: 8px; color: var(–text2); }
-.empty-sub { font-size: 13px; color: var(–text3); line-height: 1.6; max-width: 340px; margin: 0 auto; }
+.empty-icon { font-size: 48px; margin-bottom: 14px; opacity: 0.5; }
+.empty-title { font-family: ‘Instrument Serif’, serif; font-size: 20px; font-style: italic; margin-bottom: 8px; color: var(–text2); }
+.empty-sub { font-size: 13px; color: var(–text3); line-height: 1.6; }
 
-/* ===================== COLLECTIONS ===================== */
-.collections-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-gap: 14px;
-}
-
-.collection-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 22px;
-cursor: pointer;
-transition: all 0.2s;
-position: relative;
-overflow: hidden;
-}
-
-.collection-card:hover {
-border-color: var(–border2);
-transform: translateY(-3px);
-box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-}
-
-.collection-card::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0; bottom: 0;
-background: linear-gradient(135deg, var(–coll-color, rgba(124,58,237,0.08)) 0%, transparent 60%);
-pointer-events: none;
-}
-
-.coll-icon { font-size: 30px; margin-bottom: 12px; }
-.coll-name { font-family: ‘Instrument Serif’, serif; font-size: 18px; font-style: italic; margin-bottom: 6px; }
-.coll-meta { font-size: 11px; font-family: ‘Fira Code’, monospace; color: var(–text3); display: flex; gap: 10px; }
-
-/* ===================== DAILY REVIEW ===================== */
-.daily-card {
-background: linear-gradient(135deg, var(–surface2) 0%, var(–surface) 100%);
-border: 1px solid var(–border2);
-border-radius: var(–radius);
-padding: 32px;
-margin-bottom: 24px;
-position: relative;
-overflow: hidden;
-text-align: center;
-}
-
-.daily-card::before {
-content: ‘’;
-position: absolute;
-top: -80px; left: 50%;
-transform: translateX(-50%);
-width: 300px; height: 300px;
-border-radius: 50%;
-background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
-pointer-events: none;
-}
-
-.daily-label {
-font-size: 10px;
-font-family: ‘Fira Code’, monospace;
-text-transform: uppercase;
-letter-spacing: 2px;
-color: var(–accent);
-margin-bottom: 18px;
-display: block;
-}
-
-.daily-idea-title {
+/* ── SECTION TITLE ── */
+.section-title {
 font-family: ‘Instrument Serif’, serif;
-font-size: 26px;
+font-size: 18px;
 font-style: italic;
-line-height: 1.3;
-margin-bottom: 14px;
-max-width: 600px;
-margin-left: auto;
-margin-right: auto;
-}
-
-.daily-idea-body {
-font-size: 14px;
-color: var(–text2);
-line-height: 1.7;
-max-width: 520px;
-margin: 0 auto 22px;
-}
-
-.daily-topic {
-font-size: 11px;
-font-family: ‘Fira Code’, monospace;
-color: var(–text3);
-text-transform: uppercase;
-letter-spacing: 1px;
-}
-
-/* ===================== SEARCH RESULTS ===================== */
-.search-bar-full {
 display: flex;
-gap: 10px;
-margin-bottom: 24px;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 14px;
 }
 
-.search-full-input {
-flex: 1;
+.count-pill {
+font-family: ‘Syne’, sans-serif;
+font-size: 11px;
+font-weight: 700;
+background: var(–surface2);
+color: var(–text3);
+padding: 3px 9px;
+border-radius: 20px;
+font-style: normal;
+}
+
+/* ── FILTER CHIPS ── */
+.filter-row {
+display: flex;
+gap: 6px;
+overflow-x: auto;
+padding-bottom: 4px;
+margin-bottom: 14px;
+scrollbar-width: none;
+}
+
+.filter-row::-webkit-scrollbar { display: none; }
+
+.chip {
+flex-shrink: 0;
+padding: 6px 13px;
+border-radius: 20px;
+font-size: 11px;
+font-weight: 700;
+cursor: pointer;
+border: 1px solid var(–border);
+background: var(–surface);
+color: var(–text3);
+transition: all 0.15s;
+white-space: nowrap;
+}
+
+.chip.active { background: var(–accent); color: #fff; border-color: var(–accent); }
+
+/* ── SETTINGS ── */
+.setting-row {
+padding: 16px 0;
+border-bottom: 1px solid var(–border);
+}
+
+.setting-row:last-child { border-bottom: none; }
+
+.setting-label {
+font-size: 12px;
+font-weight: 700;
+color: var(–text2);
+margin-bottom: 8px;
+text-transform: uppercase;
+letter-spacing: 0.8px;
+}
+
+.setting-sub {
+font-size: 11px;
+color: var(–text3);
+margin-bottom: 10px;
+line-height: 1.5;
+}
+
+/* ── COLLECTIONS ── */
+.coll-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.coll-card {
 background: var(–surface);
 border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 12px 18px;
-font-family: ‘Syne’, sans-serif;
-font-size: 14px;
-color: var(–text);
-outline: none;
-transition: border-color 0.2s;
+border-radius: var(–r);
+padding: 16px;
+cursor: pointer;
+transition: all 0.15s;
 }
 
-.search-full-input:focus { border-color: rgba(124,58,237,0.5); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
-.search-full-input::placeholder { color: var(–text3); }
+.coll-card:active { border-color: var(–accent); transform: scale(0.97); }
+.coll-emoji { font-size: 28px; margin-bottom: 10px; }
+.coll-name { font-family: ‘Instrument Serif’, serif; font-size: 15px; font-style: italic; margin-bottom: 4px; }
+.coll-count { font-size: 11px; color: var(–text3); font-weight: 600; }
 
-/* ===================== TOAST ===================== */
-.toasts {
+/* ── TOAST ── */
+.toast-wrap {
 position: fixed;
-bottom: 24px;
-right: 24px;
-z-index: 9990;
-display: flex;
-flex-direction: column;
-gap: 8px;
+bottom: calc(var(–nav-h) + 10px);
+left: 50%;
+transform: translateX(-50%);
+z-index: 200;
 pointer-events: none;
+width: calc(100% - 32px);
+max-width: 400px;
 }
 
 .toast {
 background: var(–surface2);
 border: 1px solid var(–border2);
 color: var(–text);
-padding: 12px 18px;
-border-radius: var(–radius-sm);
+padding: 12px 16px;
+border-radius: var(–r-sm);
 font-size: 13px;
 font-weight: 600;
-box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-pointer-events: all;
-animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+box-shadow: 0 8px 30px rgba(0,0,0,0.5);
 display: flex;
 align-items: center;
 gap: 8px;
-max-width: 320px;
+animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
 
 @keyframes toastIn {
-from { opacity: 0; transform: translateY(20px) scale(0.9); }
-to { opacity: 1; transform: translateY(0) scale(1); }
+from { opacity:0; transform:translateY(20px) scale(0.9); }
+to { opacity:1; transform:translateY(0) scale(1); }
 }
 
-.toast.fade-out { animation: toastOut 0.3s ease forwards; }
+.toast.out { animation: toastOut 0.25s ease forwards; }
+@keyframes toastOut { to { opacity:0; transform:translateY(10px); } }
 
-@keyframes toastOut {
-to { opacity: 0; transform: translateY(10px) scale(0.95); }
-}
-
-/* ===================== MODAL ===================== */
+/* ── MODAL ── */
 .modal-bg {
 position: fixed;
 inset: 0;
-background: rgba(0,0,0,0.7);
-backdrop-filter: blur(8px);
-z-index: 500;
+background: rgba(0,0,0,0.75);
+backdrop-filter: blur(10px);
+z-index: 300;
 display: none;
-align-items: center;
-justify-content: center;
-padding: 20px;
+align-items: flex-end;
+padding: 0;
 }
 
 .modal-bg.show { display: flex; }
@@ -1030,228 +645,164 @@ padding: 20px;
 .modal {
 background: var(–surface);
 border: 1px solid var(–border2);
-border-radius: var(–radius);
-padding: 28px;
-max-width: 500px;
+border-radius: var(–r) var(–r) 0 0;
+padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
 width: 100%;
-animation: modalIn 0.25s ease;
+animation: slideUp 0.3s cubic-bezier(0.34,1.2,0.64,1);
 }
 
-@keyframes modalIn {
-from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-to { opacity: 1; transform: scale(1) translateY(0); }
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+
+.modal-handle {
+width: 36px; height: 4px;
+background: var(–border2);
+border-radius: 2px;
+margin: 0 auto 16px;
 }
 
 .modal-title {
 font-family: ‘Instrument Serif’, serif;
 font-size: 20px;
 font-style: italic;
+margin-bottom: 16px;
+}
+
+.modal input, .modal select { margin-bottom: 10px; }
+
+.modal-actions { display: flex; gap: 8px; margin-top: 6px; }
+.modal-actions .btn { margin-top: 0; }
+
+/* ── SEARCH ── */
+.search-box {
+position: relative;
+margin-bottom: 16px;
+}
+
+.search-box input {
+padding-left: 40px;
+}
+
+.search-icon {
+position: absolute;
+left: 14px;
+top: 50%;
+transform: translateY(-50%);
+font-size: 16px;
+pointer-events: none;
+}
+
+/* ── DAILY ── */
+.daily-hero {
+background: linear-gradient(135deg, var(–surface2), var(–surface));
+border: 1px solid var(–border2);
+border-radius: var(–r);
+padding: 24px 20px;
+text-align: center;
+margin-bottom: 16px;
+position: relative;
+overflow: hidden;
+}
+
+.daily-hero::before {
+content: ‘’;
+position: absolute;
+top: -50px; left: 50%;
+transform: translateX(-50%);
+width: 200px; height: 200px;
+border-radius: 50%;
+background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
+}
+
+.daily-label {
+font-size: 10px;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 2px;
+color: var(–accent);
+margin-bottom: 14px;
+display: block;
+}
+
+.daily-title {
+font-family: ‘Instrument Serif’, serif;
+font-size: 22px;
+font-style: italic;
+line-height: 1.3;
+margin-bottom: 12px;
+}
+
+.daily-body {
+font-size: 13px;
+color: var(–text2);
+line-height: 1.65;
 margin-bottom: 18px;
 }
 
-.modal-input {
-width: 100%;
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 11px 14px;
-font-family: ‘Syne’, sans-serif;
-font-size: 13px;
-color: var(–text);
-outline: none;
-margin-bottom: 12px;
-transition: border-color 0.2s;
-}
+.daily-btns { display: flex; gap: 8px; }
+.daily-btns .btn { margin-top: 0; }
 
-.modal-input:focus { border-color: var(–accent); }
-.modal-input::placeholder { color: var(–text3); }
-
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
-
-/* ===================== SCROLL ===================== */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(–border2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(–text3); }
-
-/* ===================== EXPORT PANEL ===================== */
-.export-options {
-display: grid;
-grid-template-columns: repeat(3,1fr);
-gap: 12px;
-margin-top: 12px;
-}
-
-.export-option {
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: var(–radius-sm);
-padding: 16px;
-text-align: center;
-cursor: pointer;
-transition: all 0.15s;
-}
-
-.export-option:hover { border-color: var(–accent); background: rgba(124,58,237,0.08); }
-.export-option .exp-icon { font-size: 24px; margin-bottom: 6px; }
-.export-option .exp-label { font-size: 11px; font-weight: 700; color: var(–text2); }
-
-/* ===================== RESPONSIVE ===================== */
-@media (max-width: 900px) {
-.sidebar { transform: translateX(-260px); transition: transform 0.3s; }
-.sidebar.open { transform: translateX(0); }
-.main { margin-left: 0; }
-.stats-row { grid-template-columns: repeat(2,1fr); }
-.content { padding: 20px 16px; }
-.topbar { padding: 14px 16px; }
-}
+/* scrollbar hide */
+.scroll-area::-webkit-scrollbar { display: none; }
+.scroll-area { scrollbar-width: none; }
 </style>
 
 </head>
 <body>
 <div class="app">
 
-<!-- ===================== SIDEBAR ===================== -->
+  <!-- TOP BAR -->
 
-<aside class="sidebar" id="sidebar">
-  <div class="logo-wrap">
-    <div class="logo">Sta<em>shi</em>fy</div>
-    <div class="logo-sub">// AI Knowledge OS</div>
-  </div>
-
-  <div class="provider-toggle">
-    <button class="prov-btn active" data-prov="claude" onclick="setProvider('claude', this)">
-      <div class="prov-dot"></div> Claude
-    </button>
-    <button class="prov-btn" data-prov="gpt" onclick="setProvider('gpt', this)">
-      <div class="prov-dot"></div> ChatGPT
-    </button>
-  </div>
-
-  <nav class="nav">
-    <div class="nav-item active" onclick="showView('home', this)" data-view="home">
-      <span class="nav-icon">⚡</span> Stash New Idea
-    </div>
-    <div class="nav-item" onclick="showView('daily', this)" data-view="daily">
-      <span class="nav-icon">🌅</span> Daily Review
-    </div>
-
-```
-<div class="nav-group-label">// Library</div>
-<div class="nav-item" onclick="showView('library', this)" data-view="library">
-  <span class="nav-icon">📚</span> All Ideas
-  <span class="nav-badge" id="nav-library-count">0</span>
-</div>
-<div class="nav-item" onclick="showView('favorites', this)" data-view="favorites">
-  <span class="nav-icon">❤️</span> Favorites
-  <span class="nav-badge" id="nav-fav-count">0</span>
-</div>
-<div class="nav-item" onclick="showView('search', this)" data-view="search">
-  <span class="nav-icon">🔍</span> Search
-</div>
-
-<div class="nav-group-label">// Topics</div>
-<div class="nav-item" onclick="filterView('Psychology')"><span class="nav-icon">🧠</span> Psychology</div>
-<div class="nav-item" onclick="filterView('Productivity')"><span class="nav-icon">⚡</span> Productivity</div>
-<div class="nav-item" onclick="filterView('Technology')"><span class="nav-icon">💻</span> Technology</div>
-<div class="nav-item" onclick="filterView('Business')"><span class="nav-icon">📈</span> Business</div>
-<div class="nav-item" onclick="filterView('Health')"><span class="nav-icon">💚</span> Health</div>
-<div class="nav-item" onclick="filterView('Philosophy')"><span class="nav-icon">🌀</span> Philosophy</div>
-<div class="nav-item" onclick="filterView('Science')"><span class="nav-icon">🔬</span> Science</div>
-<div class="nav-item" onclick="filterView('Finance')"><span class="nav-icon">💰</span> Finance</div>
-
-<div class="nav-group-label">// Collections</div>
-<div class="nav-item" onclick="showView('collections', this)" data-view="collections">
-  <span class="nav-icon">🗂️</span> Collections
-  <span class="nav-badge" id="nav-coll-count">0</span>
-</div>
-
-<div class="nav-group-label">// Tools</div>
-<div class="nav-item" onclick="showView('export', this)" data-view="export">
-  <span class="nav-icon">📤</span> Export
-</div>
-<div class="nav-item" onclick="showView('settings', this)" data-view="settings">
-  <span class="nav-icon">⚙️</span> Settings
-</div>
-```
-
-  </nav>
-
-  <div class="api-section">
-    <div class="api-section-title">// API Keys</div>
-    <div class="api-key-row">
-      <div class="api-key-label claude-label">🟠 Anthropic Claude</div>
-      <input type="password" class="api-key-input" id="claudeKey" placeholder="sk-ant-api03-..." oninput="saveKeys()">
-      <div class="api-status" id="claudeStatus"></div>
-    </div>
-    <div class="api-key-row">
-      <div class="api-key-label gpt-label">🟢 OpenAI ChatGPT</div>
-      <input type="password" class="api-key-input" id="gptKey" placeholder="sk-proj-..." oninput="saveKeys()">
-      <div class="api-status" id="gptStatus"></div>
-    </div>
-  </div>
-</aside>
-
-<!-- ===================== MAIN ===================== -->
-
-<main class="main">
   <header class="topbar">
-    <div class="topbar-left">
-      <div class="page-title" id="pageTitle">Stash Ideas</div>
-      <div class="provider-badge claude" id="provBadge">⚡ Claude Sonnet</div>
-    </div>
+    <div class="topbar-logo">Sta<em>shi</em>fy</div>
     <div class="topbar-right">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" placeholder="Search ideas..." id="quickSearch" oninput="quickSearchFn(this.value)">
+      <div class="prov-toggle">
+        <button class="prov-btn active-claude" id="btnClaude" onclick="setProvider('claude')">⚡ Claude</button>
+        <button class="prov-btn" id="btnGpt" onclick="setProvider('gpt')">🟢 GPT</button>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="clearAll()" title="Clear all">🗑️</button>
+      <div class="icon-btn" onclick="showView('settings')">⚙️</div>
     </div>
   </header>
 
-  <div class="content">
+  <!-- SCROLL AREA -->
+
+  <div class="scroll-area" id="scrollArea">
 
 ```
-<!-- ===== HOME VIEW ===== -->
+<!-- ── HOME ── -->
 <div class="view active" id="view-home">
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-card" data-icon="💡"><div class="stat-num" id="stat-ideas">0</div><div class="stat-label">Ideas Stashed</div></div>
-    <div class="stat-card" data-icon="📂"><div class="stat-num" id="stat-topics">0</div><div class="stat-label">Topics</div></div>
-    <div class="stat-card" data-icon="❤️"><div class="stat-num" id="stat-favs">0</div><div class="stat-label">Favorites</div></div>
-    <div class="stat-card" data-icon="🗂️"><div class="stat-num" id="stat-colls">0</div><div class="stat-label">Collections</div></div>
-    <div class="stat-card" data-icon="📅"><div class="stat-num" id="stat-today">0</div><div class="stat-label">Today</div></div>
+  <div class="stats-grid">
+    <div class="stat-card" data-icon="💡"><div class="stat-num" id="s-ideas">0</div><div class="stat-label">Ideas</div></div>
+    <div class="stat-card" data-icon="❤️"><div class="stat-num" id="s-favs">0</div><div class="stat-label">Favorites</div></div>
+    <div class="stat-card" data-icon="📂"><div class="stat-num" id="s-topics">0</div><div class="stat-label">Topics</div></div>
+    <div class="stat-card" data-icon="📅"><div class="stat-num" id="s-today">0</div><div class="stat-label">Today</div></div>
   </div>
 
-  <!-- Stash Panel -->
-  <div class="stash-panel">
-    <div class="panel-header">
-      <div class="panel-title">✨ Extract Ideas</div>
-      <div id="activeProvLabel" style="font-size:11px; font-family:'Fira Code',monospace; color:var(--text3);">powered by Claude</div>
-    </div>
+  <div class="panel">
+    <div class="panel-title">✨ Extract Ideas</div>
 
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('text', this)">📝 Text</button>
-      <button class="tab" onclick="switchTab('url', this)">🔗 URL</button>
-      <button class="tab" onclick="switchTab('manual', this)">✍️ Manual</button>
+      <button class="tab active" onclick="switchTab('text',this)">📝 Text</button>
+      <button class="tab" onclick="switchTab('url',this)">🔗 URL</button>
+      <button class="tab" onclick="switchTab('manual',this)">✍️ Manual</button>
     </div>
 
     <div id="tab-text">
-      <textarea class="stash-textarea" id="textInput" placeholder="Paste any article, book excerpt, blog post, research paper, or any content here. AI will extract the most valuable ideas as beautiful cards…"></textarea>
+      <textarea id="textInput" placeholder="Paste any article, book excerpt, blog post… AI will extract the best ideas as cards."></textarea>
     </div>
-
     <div id="tab-url" style="display:none">
-      <input type="url" class="stash-url-input" id="urlInput" placeholder="https://article-url-here.com/...">
-      <p style="font-size:11px; color:var(--text3); margin-top:8px; font-family:'Fira Code',monospace;">// CORS note: paste article text directly for best results</p>
+      <input type="url" id="urlInput" placeholder="https://article-url.com/…">
+      <p style="font-size:11px;color:var(--text3);margin-top:6px;">Tip: paste article text directly for best results</p>
     </div>
-
     <div id="tab-manual" style="display:none">
-      <input class="manual-title-input" id="manualTitle" placeholder="Your idea title…">
-      <textarea class="stash-textarea" id="manualBody" placeholder="Expand on this idea…" style="min-height:90px;"></textarea>
+      <input type="text" id="manualTitle" placeholder="Idea title…" style="margin-bottom:8px;">
+      <textarea id="manualBody" placeholder="Expand on your idea…" style="min-height:80px;"></textarea>
     </div>
 
-    <div class="panel-row">
-      <select class="panel-select" id="topicSelect">
+    <div class="input-row">
+      <select id="topicSel">
         <option value="General">📌 General</option>
         <option value="Psychology">🧠 Psychology</option>
         <option value="Productivity">⚡ Productivity</option>
@@ -1263,200 +814,168 @@ transition: all 0.15s;
         <option value="Finance">💰 Finance</option>
         <option value="Leadership">👑 Leadership</option>
         <option value="Creativity">🎨 Creativity</option>
-        <option value="Relationships">💬 Relationships</option>
       </select>
-
-      <select class="panel-select count-select" id="ideaCount">
+      <select id="countSel" style="max-width:110px;">
         <option value="3">3 ideas</option>
         <option value="5" selected>5 ideas</option>
         <option value="7">7 ideas</option>
         <option value="10">10 ideas</option>
       </select>
-
-      <div style="margin-left:auto; display:flex; gap:8px;">
-        <button class="btn btn-ghost" onclick="testAPIKey()">🔑 Test Key</button>
-        <button class="btn btn-primary" id="extractBtn" onclick="extractIdeas()">
-          ✨ Extract Ideas
-        </button>
-      </div>
     </div>
 
-    <div class="ai-loading" id="aiLoading">
-      <div class="ai-loader">
-        <span></span><span></span><span></span>
-      </div>
-      <div class="ai-loading-text" id="loadingText">AI is reading and extracting ideas…</div>
+    <div class="ai-loader" id="aiLoader">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="loader-text" id="loaderText">AI extracting ideas…</div>
     </div>
+
+    <button class="btn btn-primary" id="extractBtn" onclick="extractIdeas()">✨ Extract Ideas</button>
   </div>
 
-  <!-- Recent -->
-  <div class="section-bar">
-    <div class="section-title">Recent Stashes <span class="badge" id="recentCount">0</span></div>
-    <button class="btn btn-ghost btn-sm" onclick="showView('library', document.querySelector('[data-view=library]'))">View all →</button>
+  <div class="section-title">
+    Recent <span class="count-pill" id="recentCount">0</span>
   </div>
-
-  <div class="cards-grid" id="recentCards">
+  <div class="cards-list" id="recentCards">
     <div class="empty">
       <div class="empty-icon">🌱</div>
-      <div class="empty-title">Your knowledge garden awaits</div>
-      <div class="empty-sub">Paste any article above and let AI extract the key insights as beautiful cards.</div>
+      <div class="empty-title">Your garden awaits</div>
+      <div class="empty-sub">Paste any article and let AI extract the best ideas.</div>
     </div>
   </div>
 </div>
 
-<!-- ===== LIBRARY VIEW ===== -->
+<!-- ── LIBRARY ── -->
 <div class="view" id="view-library">
-  <div class="section-bar">
-    <div class="section-title">All Ideas <span class="badge" id="libCount">0</span></div>
-    <div style="display:flex; gap:8px;">
-      <select class="panel-select" id="sortSelect" onchange="renderLibrary()">
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="topic">By topic</option>
+  <div class="section-title">All Ideas <span class="count-pill" id="libCount">0</span></div>
+  <div class="filter-row" id="libFilters"></div>
+  <div class="cards-list" id="libCards"></div>
+</div>
+
+<!-- ── DAILY ── -->
+<div class="view" id="view-daily">
+  <div class="daily-hero">
+    <span class="daily-label">✦ Idea of the moment</span>
+    <div class="daily-title" id="dailyTitle">No ideas yet</div>
+    <div class="daily-body" id="dailyBody">Start stashing ideas to get your daily review.</div>
+    <div class="daily-btns">
+      <button class="btn btn-ghost" style="flex:1" onclick="nextDaily()">Skip →</button>
+      <button class="btn btn-primary" style="flex:1" onclick="likeDaily()">❤️ Love it</button>
+    </div>
+  </div>
+  <div class="section-title">All for review</div>
+  <div class="cards-list" id="dailyCards"></div>
+</div>
+
+<!-- ── FAVORITES ── -->
+<div class="view" id="view-favorites">
+  <div class="section-title">Favorites <span class="count-pill" id="favCount">0</span></div>
+  <div class="cards-list" id="favCards"></div>
+</div>
+
+<!-- ── COLLECTIONS ── -->
+<div class="view" id="view-collections">
+  <div class="section-title">Collections <span class="count-pill" id="collCount">0</span></div>
+  <button class="btn btn-ghost btn-sm" style="margin-bottom:14px; width:100%;" onclick="openNewColl()">+ New Collection</button>
+  <div class="coll-grid" id="collGrid"></div>
+</div>
+
+<!-- ── SETTINGS ── -->
+<div class="view" id="view-settings">
+  <div class="panel">
+    <div class="panel-title">⚙️ API Keys</div>
+
+    <div class="setting-row">
+      <div class="setting-label">🟠 Claude (Anthropic)</div>
+      <div class="setting-sub">Get your key at console.anthropic.com</div>
+      <input type="password" id="claudeKey" placeholder="sk-ant-api03-…" oninput="saveKeys()">
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="testKey('claude')">🔑 Test Claude Key</button>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">🟢 ChatGPT (OpenAI)</div>
+      <div class="setting-sub">Get your key at platform.openai.com</div>
+      <input type="password" id="gptKey" placeholder="sk-proj-…" oninput="saveKeys()">
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="testKey('gpt')">🔑 Test GPT Key</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">🤖 AI Models</div>
+    <div class="setting-row">
+      <div class="setting-label">Claude Model</div>
+      <select id="claudeModel" onchange="saveSettings()">
+        <option value="claude-sonnet-4-20250514">Claude Sonnet 4 ✦ Recommended</option>
+        <option value="claude-opus-4-20250514">Claude Opus 4 — Most Powerful</option>
+        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — Fastest</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">GPT Model</div>
+      <select id="gptModel" onchange="saveSettings()">
+        <option value="gpt-4o">GPT-4o ✦ Recommended</option>
+        <option value="gpt-4o-mini">GPT-4o Mini — Faster</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
       </select>
     </div>
   </div>
-  <div class="filter-row" id="libFilterRow"></div>
-  <div class="cards-grid" id="libCards"></div>
-</div>
 
-<!-- ===== DAILY REVIEW ===== -->
-<div class="view" id="view-daily">
-  <div class="daily-card" id="dailyCard">
-    <span class="daily-label">// Today's Idea</span>
-    <div class="daily-idea-title" id="dailyTitle">No ideas stashed yet</div>
-    <div class="daily-idea-body" id="dailyBody">Start stashing ideas to get your daily review.</div>
-    <div class="daily-topic" id="dailyTopic"></div>
-    <div style="margin-top:22px; display:flex; gap:10px; justify-content:center;">
-      <button class="btn btn-ghost" onclick="nextDaily()">Skip →</button>
-      <button class="btn btn-primary" onclick="likeCurrentDaily()">❤️ Love this</button>
+  <div class="panel">
+    <div class="panel-title">📤 Export</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:0;" onclick="exportData('json')">📋 JSON</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:0;" onclick="exportData('markdown')">📝 Markdown</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:0;" onclick="exportData('csv')">📊 CSV</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:0;" onclick="copyAll()">📎 Copy All</button>
     </div>
   </div>
-  <div class="section-bar" style="margin-top:28px;">
-    <div class="section-title">All ideas for review</div>
-  </div>
-  <div class="cards-grid" id="dailyCards"></div>
-</div>
 
-<!-- ===== FAVORITES VIEW ===== -->
-<div class="view" id="view-favorites">
-  <div class="section-bar">
-    <div class="section-title">Favorites <span class="badge" id="favCount">0</span></div>
-  </div>
-  <div class="cards-grid" id="favCards"></div>
-</div>
-
-<!-- ===== COLLECTIONS VIEW ===== -->
-<div class="view" id="view-collections">
-  <div class="section-bar">
-    <div class="section-title">Collections <span class="badge" id="collCount">0</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openNewCollection()">+ New Collection</button>
-  </div>
-  <div class="collections-grid" id="collGrid"></div>
-</div>
-
-<!-- ===== SEARCH VIEW ===== -->
-<div class="view" id="view-search">
-  <div class="search-bar-full">
-    <input class="search-full-input" id="searchFullInput" placeholder="Search across all your stashed ideas…" oninput="fullSearch(this.value)">
-  </div>
-  <div class="cards-grid" id="searchResults">
-    <div class="empty">
-      <div class="empty-icon">🔍</div>
-      <div class="empty-title">Search your knowledge base</div>
-      <div class="empty-sub">Type anything to search across all ideas, titles, topics, and tags.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== EXPORT VIEW ===== -->
-<div class="view" id="view-export">
-  <div class="stash-panel">
-    <div class="panel-title" style="margin-bottom:10px;">📤 Export Your Knowledge</div>
-    <p style="font-size:13px; color:var(--text3); margin-bottom:4px;">Export all your stashed ideas in your preferred format.</p>
-    <div class="export-options">
-      <div class="export-option" onclick="exportData('json')">
-        <div class="exp-icon">📋</div>
-        <div class="exp-label">JSON</div>
-      </div>
-      <div class="export-option" onclick="exportData('csv')">
-        <div class="exp-icon">📊</div>
-        <div class="exp-label">CSV</div>
-      </div>
-      <div class="export-option" onclick="exportData('markdown')">
-        <div class="exp-icon">📝</div>
-        <div class="exp-label">Markdown</div>
-      </div>
-      <div class="export-option" onclick="exportData('txt')">
-        <div class="exp-icon">📄</div>
-        <div class="exp-label">Plain Text</div>
-      </div>
-      <div class="export-option" onclick="exportData('html')">
-        <div class="exp-icon">🌐</div>
-        <div class="exp-label">HTML</div>
-      </div>
-      <div class="export-option" onclick="copyAllToClipboard()">
-        <div class="exp-icon">📎</div>
-        <div class="exp-label">Copy All</div>
-      </div>
-    </div>
-  </div>
-  <div style="margin-top:16px; padding:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
-    <div style="font-size:12px; font-family:'Fira Code',monospace; color:var(--text3); margin-bottom:10px;">// Stats</div>
-    <div id="exportStats" style="font-size:13px; color:var(--text2); line-height:2;"></div>
-  </div>
-</div>
-
-<!-- ===== SETTINGS VIEW ===== -->
-<div class="view" id="view-settings">
-  <div class="stash-panel">
-    <div class="panel-title" style="margin-bottom:20px;">⚙️ Settings</div>
-
-    <div style="display:flex; flex-direction:column; gap:18px;">
-      <div>
-        <div style="font-size:11px; font-family:'Fira Code',monospace; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Default AI Provider</div>
-        <select class="panel-select" id="defaultProvider" onchange="saveSettings()">
-          <option value="claude">Claude (Anthropic)</option>
-          <option value="gpt">ChatGPT (OpenAI)</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px; font-family:'Fira Code',monospace; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Default Claude Model</div>
-        <select class="panel-select" id="claudeModel" onchange="saveSettings()">
-          <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Recommended)</option>
-          <option value="claude-opus-4-20250514">Claude Opus 4 (Most powerful)</option>
-          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest)</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px; font-family:'Fira Code',monospace; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Default GPT Model</div>
-        <select class="panel-select" id="gptModel" onchange="saveSettings()">
-          <option value="gpt-4o">GPT-4o (Recommended)</option>
-          <option value="gpt-4o-mini">GPT-4o Mini (Faster)</option>
-          <option value="gpt-4-turbo">GPT-4 Turbo</option>
-        </select>
-      </div>
-      <div style="padding-top:16px; border-top:1px solid var(--border);">
-        <button class="btn btn-danger" onclick="if(confirm('Delete ALL stashed ideas? This cannot be undone.')) { localStorage.clear(); ideas=[]; collections=[]; updateAll(); showToast('🗑️ All data cleared','danger'); }">
-          🗑️ Clear All Data
-        </button>
-      </div>
-    </div>
+  <div class="panel">
+    <div class="panel-title">🗑️ Danger Zone</div>
+    <button class="btn btn-danger" onclick="clearAll()">Delete All Ideas</button>
   </div>
 </div>
 ```
 
-  </div><!-- /content -->
-</main>
+  </div><!-- /scroll -->
+
+  <!-- BOTTOM NAV -->
+
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="tab-home" onclick="showView('home')">
+      <div class="nav-icon">⚡</div>
+      <div class="nav-label">Stash</div>
+    </button>
+    <button class="nav-tab" id="tab-library" onclick="showView('library')">
+      <div class="nav-icon">📚<div class="nav-dot" id="dot-library"></div></div>
+      <div class="nav-label">Library</div>
+    </button>
+    <button class="nav-tab" id="tab-daily" onclick="showView('daily')">
+      <div class="nav-icon">🌅</div>
+      <div class="nav-label">Daily</div>
+    </button>
+    <button class="nav-tab" id="tab-favorites" onclick="showView('favorites')">
+      <div class="nav-icon">❤️<div class="nav-dot" id="dot-favs"></div></div>
+      <div class="nav-label">Saved</div>
+    </button>
+    <button class="nav-tab" id="tab-collections" onclick="showView('collections')">
+      <div class="nav-icon">🗂️</div>
+      <div class="nav-label">Collections</div>
+    </button>
+  </nav>
+
 </div><!-- /app -->
 
-<!-- COLLECTION MODAL -->
+<!-- TOAST -->
 
-<div class="modal-bg" id="collModal">
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- NEW COLLECTION MODAL -->
+
+<div class="modal-bg" id="collModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-title">Create Collection</div>
-    <input class="modal-input" id="collName" placeholder="Collection name…">
-    <select class="modal-input" id="collEmoji" style="cursor:pointer;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Collection</div>
+    <input type="text" id="collName" placeholder="Collection name…">
+    <select id="collEmoji">
       <option value="📚">📚 Books</option>
       <option value="💡">💡 Ideas</option>
       <option value="🚀">🚀 Goals</option>
@@ -1466,201 +985,160 @@ transition: all 0.15s;
       <option value="🔬">🔬 Research</option>
       <option value="🎨">🎨 Creative</option>
       <option value="⚡">⚡ Productivity</option>
-      <option value="❤️">❤️ Favorites</option>
     </select>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="createCollection()">Create</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="createColl()">Create</button>
     </div>
   </div>
 </div>
 
 <!-- ADD TO COLLECTION MODAL -->
 
-<div class="modal-bg" id="addToCollModal">
+<div class="modal-bg" id="addCollModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-title">Add to Collection</div>
-    <div id="collPickList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-    </div>
+    <div id="collPickList" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
+    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:10px;">Cancel</button>
   </div>
 </div>
 
-<!-- TOAST CONTAINER -->
-
-<div class="toasts" id="toastContainer"></div>
-
 <script>
-// ======================================================
+// ═══════════════════════════════════════
 // STATE
-// ======================================================
+// ═══════════════════════════════════════
 let ideas = JSON.parse(localStorage.getItem('sz-ideas') || '[]');
 let collections = JSON.parse(localStorage.getItem('sz-collections') || '[]');
-let settings = JSON.parse(localStorage.getItem('sz-settings') || '{}');
-let currentProvider = settings.defaultProvider || 'claude';
+let provider = localStorage.getItem('sz-provider') || 'claude';
+let currentView = 'home';
+let libFilter = 'all';
+let dailyIdx = 0;
+let addCollId = null;
 let currentTab = 'text';
-let currentLibFilter = 'all';
-let dailyIndex = 0;
-let addToCollIdeaId = null;
 
-// ======================================================
-// TOPIC CONFIG
-// ======================================================
-const TOPIC_CFG = {
-  Psychology:   { color: '#8b5cf6', emoji: '🧠' },
-  Productivity: { color: '#f59e0b', emoji: '⚡' },
-  Technology:   { color: '#3b82f6', emoji: '💻' },
-  Business:     { color: '#10b981', emoji: '📈' },
-  Health:       { color: '#22c55e', emoji: '💚' },
-  Philosophy:   { color: '#6366f1', emoji: '🌀' },
-  Science:      { color: '#06b6d4', emoji: '🔬' },
-  Finance:      { color: '#84cc16', emoji: '💰' },
-  Leadership:   { color: '#f97316', emoji: '👑' },
-  Creativity:   { color: '#ec4899', emoji: '🎨' },
-  Relationships:{ color: '#f43f5e', emoji: '💬' },
-  General:      { color: '#7c3aed', emoji: '📌' },
+const TOPICS = {
+  Psychology:   { c:'#8b5cf6', e:'🧠' },
+  Productivity: { c:'#f59e0b', e:'⚡' },
+  Technology:   { c:'#3b82f6', e:'💻' },
+  Business:     { c:'#10b981', e:'📈' },
+  Health:       { c:'#22c55e', e:'💚' },
+  Philosophy:   { c:'#6366f1', e:'🌀' },
+  Science:      { c:'#06b6d4', e:'🔬' },
+  Finance:      { c:'#84cc16', e:'💰' },
+  Leadership:   { c:'#f97316', e:'👑' },
+  Creativity:   { c:'#ec4899', e:'🎨' },
+  General:      { c:'#7c3aed', e:'📌' },
 };
 
-function topicColor(t) { return (TOPIC_CFG[t] || TOPIC_CFG.General).color; }
-function topicEmoji(t) { return (TOPIC_CFG[t] || TOPIC_CFG.General).emoji; }
+const tc = t => (TOPICS[t]||TOPICS.General).c;
+const te = t => (TOPICS[t]||TOPICS.General).e;
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-// ======================================================
-// PROVIDER
-// ======================================================
-function setProvider(prov, el) {
-  currentProvider = prov;
-  document.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  const badge = document.getElementById('provBadge');
-  if (prov === 'claude') {
-    badge.textContent = '⚡ Claude Sonnet';
-    badge.className = 'provider-badge claude';
-    document.getElementById('activeProvLabel').textContent = 'powered by Claude';
-  } else {
-    badge.textContent = '🟢 ChatGPT';
-    badge.className = 'provider-badge gpt';
-    document.getElementById('activeProvLabel').textContent = 'powered by ChatGPT';
-  }
-}
-
-// ======================================================
+// ═══════════════════════════════════════
 // VIEWS
-// ======================================================
-function showView(view, el) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
-  const viewEl = document.getElementById('view-' + view);
-  if (viewEl) viewEl.classList.add('active');
-  if (el && el.dataset.view) el.classList.add('active');
+// ═══════════════════════════════════════
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  const t = document.getElementById('tab-' + v);
+  if (t) t.classList.add('active');
+  currentView = v;
+  document.getElementById('scrollArea').scrollTop = 0;
 
-  const titles = {
-    home: 'Stash Ideas', library: 'Library', daily: 'Daily Review',
-    favorites: 'Favorites', collections: 'Collections', search: 'Search',
-    export: 'Export', settings: 'Settings'
-  };
-  document.getElementById('pageTitle').textContent = titles[view] || view;
-
-  if (view === 'library')    renderLibrary();
-  if (view === 'favorites')  renderFavorites();
-  if (view === 'collections') renderCollections();
-  if (view === 'daily')      renderDaily();
-  if (view === 'export')     renderExport();
-  updateAll();
+  if (v === 'library') renderLibrary();
+  if (v === 'favorites') renderFavs();
+  if (v === 'collections') renderColls();
+  if (v === 'daily') renderDaily();
+  updateStats();
 }
 
-function filterView(topic) {
-  currentLibFilter = topic;
-  showView('library', document.querySelector('[data-view=library]'));
-  setTimeout(() => {
-    document.querySelectorAll('#libFilterRow .chip').forEach(c => {
-      c.classList.toggle('active', c.dataset.filter === topic);
-    });
-    renderLibrary();
-  }, 50);
+// ═══════════════════════════════════════
+// PROVIDER
+// ═══════════════════════════════════════
+function setProvider(p) {
+  provider = p;
+  localStorage.setItem('sz-provider', p);
+  document.getElementById('btnClaude').className = 'prov-btn' + (p==='claude' ? ' active-claude' : '');
+  document.getElementById('btnGpt').className = 'prov-btn' + (p==='gpt' ? ' active-gpt' : '');
 }
 
-// ======================================================
+// ═══════════════════════════════════════
 // TABS
-// ======================================================
+// ═══════════════════════════════════════
 function switchTab(tab, el) {
   currentTab = tab;
   ['text','url','manual'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
   });
-  document.querySelectorAll('.stash-panel .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 }
 
-// ======================================================
-// EXTRACT IDEAS
-// ======================================================
+// ═══════════════════════════════════════
+// EXTRACT
+// ═══════════════════════════════════════
 async function extractIdeas() {
-  const key = currentProvider === 'claude'
+  const key = provider === 'claude'
     ? document.getElementById('claudeKey').value.trim()
     : document.getElementById('gptKey').value.trim();
 
   if (!key) {
-    showToast('⚠️ Please enter your ' + (currentProvider === 'claude' ? 'Claude' : 'OpenAI') + ' API key in the sidebar', 'warn');
+    showToast('⚠️ Add your API key in Settings ⚙️', 'warn');
+    showView('settings');
     return;
   }
 
-  let inputText = '', source = '';
-
+  let text = '', source = '';
   if (currentTab === 'text') {
-    inputText = document.getElementById('textInput').value.trim();
+    text = document.getElementById('textInput').value.trim();
     source = 'Pasted Text';
-    if (!inputText) { showToast('⚠️ Please paste some text first', 'warn'); return; }
+    if (!text) { showToast('⚠️ Paste some text first', 'warn'); return; }
   } else if (currentTab === 'url') {
     const url = document.getElementById('urlInput').value.trim();
-    if (!url) { showToast('⚠️ Please enter a URL', 'warn'); return; }
-    inputText = `Analyze ideas from this URL: ${url}`;
+    if (!url) { showToast('⚠️ Enter a URL', 'warn'); return; }
+    text = `Extract ideas from this URL: ${url}`;
     source = url;
   } else {
-    const title = document.getElementById('manualTitle').value.trim();
-    const body = document.getElementById('manualBody').value.trim();
-    if (!title || !body) { showToast('⚠️ Fill in title and body', 'warn'); return; }
-    saveManualIdea(title, body);
-    return;
+    const t = document.getElementById('manualTitle').value.trim();
+    const b = document.getElementById('manualBody').value.trim();
+    if (!t||!b) { showToast('⚠️ Fill in title and body', 'warn'); return; }
+    saveManual(t, b); return;
   }
 
-  const topic = document.getElementById('topicSelect').value;
-  const count = document.getElementById('ideaCount').value;
+  const topic = document.getElementById('topicSel').value;
+  const count = document.getElementById('countSel').value;
   const btn = document.getElementById('extractBtn');
-  const loading = document.getElementById('aiLoading');
-  const loadingText = document.getElementById('loadingText');
+  const loader = document.getElementById('aiLoader');
+  const loaderText = document.getElementById('loaderText');
 
   btn.disabled = true;
-  loading.classList.add('show');
+  loader.classList.add('show');
 
-  const prompts = [
-    `Reading and understanding the content…`,
-    `Identifying the most valuable insights…`,
-    `Formatting ideas into beautiful cards…`
-  ];
-  let pi = 0;
-  const pTimer = setInterval(() => { loadingText.textContent = prompts[pi++ % prompts.length]; }, 1800);
+  const msgs = ['Reading content…', 'Finding key insights…', 'Formatting cards…'];
+  let mi = 0;
+  const timer = setInterval(() => { loaderText.textContent = msgs[mi++ % msgs.length]; }, 1800);
 
-  const systemPrompt = `You are an expert knowledge curator. Your job is to extract the most valuable, actionable, and insightful ideas from any text.`;
+  const sys = 'You are an expert knowledge curator. Extract the most valuable, actionable insights from any text.';
+  const prompt = `Extract exactly ${count} key ideas from this text.
 
-  const userPrompt = `Extract exactly ${count} key ideas from the text below.
+For each idea return:
+- "title": punchy memorable title (max 12 words)
+- "body": insightful 2-3 sentence explanation with WHY it matters
+- "tags": array of 2-3 keyword tags (lowercase)
 
-For each idea provide:
-1. "title": A punchy, memorable title (max 12 words). Make it thought-provoking.
-2. "body": An insightful 2-3 sentence explanation that adds depth and context beyond just restating the title. Include WHY this matters.
-3. "tags": Array of 2-3 relevant keyword tags (lowercase, no spaces, e.g. ["mindset","habits","growth"])
-
-Return ONLY a valid JSON array with no preamble, no markdown, no code fences:
-[{"title":"...","body":"...","tags":["...","..."]},...]
+Return ONLY a valid JSON array, no markdown, no preamble:
+[{"title":"...","body":"...","tags":["..."]},...]
 
 TEXT:
-${inputText.substring(0, 9000)}`;
+${text.substring(0, 9000)}`;
 
   try {
-    let extracted;
+    let parsed;
 
-    if (currentProvider === 'claude') {
-      const modelId = document.getElementById('claudeModel')?.value || 'claude-sonnet-4-20250514';
+    if (provider === 'claude') {
+      const model = document.getElementById('claudeModel').value;
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -1669,642 +1147,451 @@ ${inputText.substring(0, 9000)}`;
           'anthropic-version': '2023-06-01',
           'anthropic-dangerous-direct-browser-access': 'true'
         },
-        body: JSON.stringify({
-          model: modelId,
-          max_tokens: 2500,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userPrompt }]
-        })
+        body: JSON.stringify({ model, max_tokens: 2500, system: sys, messages: [{ role:'user', content:prompt }] })
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Claude API error'); }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Claude error'); }
       const d = await res.json();
-      extracted = parseIdeasJSON(d.content[0].text);
+      parsed = parseJSON(d.content[0].text);
     } else {
-      const gptModel = document.getElementById('gptModel')?.value || 'gpt-4o';
+      const model = document.getElementById('gptModel').value;
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({
-          model: gptModel,
-          max_tokens: 2500,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ]
-        })
+        body: JSON.stringify({ model, max_tokens: 2500, messages: [{ role:'system', content:sys }, { role:'user', content:prompt }] })
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'OpenAI API error'); }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'OpenAI error'); }
       const d = await res.json();
-      extracted = parseIdeasJSON(d.choices[0].message.content);
+      parsed = parseJSON(d.choices[0].message.content);
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const newIdeas = extracted.map((item, i) => ({
+    const newIdeas = parsed.map((item, i) => ({
       id: Date.now() + i,
-      title: item.title,
-      body: item.body,
+      title: item.title, body: item.body,
       tags: Array.isArray(item.tags) ? item.tags : [],
-      topic, source,
-      provider: currentProvider,
-      liked: false,
-      collection: null,
-      date: today,
-      createdAt: new Date().toISOString()
+      topic, source, provider,
+      liked: false, collection: null,
+      date: today, createdAt: new Date().toISOString()
     }));
 
     ideas = [...newIdeas, ...ideas];
     saveData();
-    renderRecentCards(newIdeas);
-    updateAll();
+    addCardsToRecent(newIdeas);
+    updateStats();
     showToast(`✨ ${newIdeas.length} ideas extracted!`, 'success');
     document.getElementById('textInput').value = '';
     document.getElementById('urlInput').value = '';
 
-  } catch (err) {
+  } catch(err) {
     showToast('❌ ' + err.message, 'danger');
-    console.error(err);
   } finally {
-    clearInterval(pTimer);
+    clearInterval(timer);
     btn.disabled = false;
-    loading.classList.remove('show');
-    loadingText.textContent = 'AI is reading and extracting ideas…';
+    loader.classList.remove('show');
+    loaderText.textContent = 'AI extracting ideas…';
   }
 }
 
-function parseIdeasJSON(text) {
-  const match = text.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('Could not parse AI response');
-  return JSON.parse(match[0]);
+function parseJSON(text) {
+  const m = text.match(/\[[\s\S]*\]/);
+  if (!m) throw new Error('Could not parse AI response');
+  return JSON.parse(m[0]);
 }
 
-function saveManualIdea(title, body) {
-  const topic = document.getElementById('topicSelect').value;
+function saveManual(title, body) {
   const today = new Date().toISOString().split('T')[0];
-  const idea = {
-    id: Date.now(), title, body, tags: [], topic,
-    source: 'Manual', provider: 'manual', liked: false,
-    collection: null, date: today, createdAt: new Date().toISOString()
-  };
+  const idea = { id: Date.now(), title, body, tags:[], topic: document.getElementById('topicSel').value, source:'Manual', provider:'manual', liked:false, collection:null, date:today, createdAt:new Date().toISOString() };
   ideas = [idea, ...ideas];
   saveData();
-  renderRecentCards([idea]);
-  updateAll();
+  addCardsToRecent([idea]);
+  updateStats();
   showToast('✅ Idea saved!', 'success');
   document.getElementById('manualTitle').value = '';
   document.getElementById('manualBody').value = '';
 }
 
-// ======================================================
-// TEST API KEY
-// ======================================================
-async function testAPIKey() {
-  const key = currentProvider === 'claude'
-    ? document.getElementById('claudeKey').value.trim()
-    : document.getElementById('gptKey').value.trim();
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function cardHTML(idea, delay=0) {
+  const color = tc(idea.topic);
+  const src = (idea.source||'').length > 40 ? idea.source.substring(0,40)+'…' : (idea.source||'');
+  const date = idea.createdAt ? new Date(idea.createdAt).toLocaleDateString('en',{month:'short',day:'numeric'}) : '';
+  const tagsHTML = (idea.tags||[]).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+  const collBtn = idea.collection
+    ? `<button class="card-btn in-coll" onclick="removeFromColl(${idea.id})" title="Remove from collection">🗂️</button>`
+    : `<button class="card-btn" onclick="openAddColl(${idea.id})" title="Add to collection">🗂️</button>`;
 
-  if (!key) { showToast('⚠️ Enter an API key first', 'warn'); return; }
-
-  showToast('🔑 Testing key…');
-  try {
-    if (currentProvider === 'claude') {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'Hi' }]
-        })
-      });
-      if (!res.ok) throw new Error('Invalid key');
-      document.getElementById('claudeStatus').innerHTML = '<span>✓</span> Connected';
-      document.getElementById('claudeStatus').className = 'api-status ok';
-      showToast('✅ Claude API key is valid!', 'success');
-    } else {
-      const res = await fetch('https://api.openai.com/v1/models', {
-        headers: { 'Authorization': 'Bearer ' + key }
-      });
-      if (!res.ok) throw new Error('Invalid key');
-      document.getElementById('gptStatus').innerHTML = '<span>✓</span> Connected';
-      document.getElementById('gptStatus').className = 'api-status ok';
-      showToast('✅ OpenAI API key is valid!', 'success');
-    }
-  } catch (e) {
-    const el = document.getElementById(currentProvider === 'claude' ? 'claudeStatus' : 'gptStatus');
-    el.innerHTML = '✗ Invalid key';
-    el.className = 'api-status err';
-    showToast('❌ Invalid API key', 'danger');
-  }
+  return `<div class="idea-card" id="card-${idea.id}" style="--card-color:${color};animation-delay:${delay}s">
+    <div class="card-topic" style="color:${color}">${te(idea.topic)} ${esc(idea.topic)}</div>
+    <div class="card-title">${esc(idea.title)}</div>
+    <div class="card-body">${esc(idea.body)}</div>
+    ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
+    <div class="card-footer">
+      <div class="card-source">📎 ${esc(src)}<br><span style="font-size:9px;opacity:0.6">${date}</span></div>
+      <div class="card-btns">
+        <button class="card-btn ${idea.liked?'liked':''}" onclick="toggleLike(${idea.id},this)">${idea.liked?'❤️':'🤍'}</button>
+        ${collBtn}
+        <button class="card-btn" onclick="copyCard(${idea.id})">📋</button>
+        <button class="card-btn" onclick="deleteIdea(${idea.id})">🗑️</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-// ======================================================
-// RENDER CARDS
-// ======================================================
-function renderRecentCards(newIdeas) {
-  const container = document.getElementById('recentCards');
-  container.querySelector('.empty')?.remove();
-  const html = newIdeas.map((idea, i) => cardHTML(idea, i * 0.06)).join('');
-  container.insertAdjacentHTML('afterbegin', html);
+function addCardsToRecent(newIdeas) {
+  const c = document.getElementById('recentCards');
+  c.querySelector('.empty')?.remove();
+  c.insertAdjacentHTML('afterbegin', newIdeas.map((i,idx) => cardHTML(i, idx*0.06)).join(''));
   document.getElementById('recentCount').textContent = ideas.length;
 }
 
-function cardHTML(idea, delay = 0) {
-  const color = topicColor(idea.topic);
-  const emoji = topicEmoji(idea.topic);
-  const provColor = idea.provider === 'claude' ? 'var(--claude)' : idea.provider === 'gpt' ? 'var(--gpt)' : 'var(--text3)';
-  const date = idea.createdAt ? new Date(idea.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric' }) : '';
-  const src = (idea.source || '').length > 45 ? idea.source.substring(0, 45) + '…' : (idea.source || '');
-  const tagsHTML = (idea.tags || []).map(t => `<span class="card-tag">${esc(t)}</span>`).join('');
-  const collBtn = idea.collection ? `<button class="card-action in-collection" onclick="removeFromCollection(${idea.id})" title="In collection: ${esc(idea.collection)}">🗂️</button>` : `<button class="card-action" onclick="openAddToCollection(${idea.id})" title="Add to collection">🗂️</button>`;
-
-  return `
-    <div class="idea-card" id="card-${idea.id}" style="--card-color:${color}; animation-delay:${delay}s">
-      <div class="card-top">
-        <div class="card-topic-pill" style="color:${color};">
-          <div class="card-provider-dot" style="background:${provColor};"></div>
-          ${emoji} ${esc(idea.topic)}
-        </div>
-      </div>
-      <div class="card-title">${esc(idea.title)}</div>
-      <div class="card-body">${esc(idea.body)}</div>
-      ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
-      <div class="card-footer">
-        <div class="card-meta">
-          <div class="card-source">📎 ${esc(src)}</div>
-          <div class="card-date">${date}</div>
-        </div>
-        <div class="card-actions">
-          <button class="card-action ${idea.liked ? 'liked' : ''}" onclick="toggleLike(${idea.id}, this)" title="Favorite">
-            ${idea.liked ? '❤️' : '🤍'}
-          </button>
-          ${collBtn}
-          <button class="card-action" onclick="copyCard(${idea.id})" title="Copy">📋</button>
-          <button class="card-action" onclick="deleteIdea(${idea.id})" title="Delete">🗑️</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function esc(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 function renderLibrary() {
-  const container = document.getElementById('libCards');
+  const c = document.getElementById('libCards');
   let filtered = [...ideas];
-
-  if (currentLibFilter && currentLibFilter !== 'all') {
-    filtered = filtered.filter(i => i.topic === currentLibFilter);
-  }
-
-  const sort = document.getElementById('sortSelect')?.value || 'newest';
-  if (sort === 'newest') filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-  if (sort === 'oldest') filtered.sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
-  if (sort === 'topic') filtered.sort((a,b) => a.topic.localeCompare(b.topic));
+  if (libFilter !== 'all') filtered = filtered.filter(i => i.topic === libFilter);
+  filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   document.getElementById('libCount').textContent = filtered.length;
 
   // Filter chips
-  const filterRow = document.getElementById('libFilterRow');
-  const topics = ['all', ...new Set(ideas.map(i => i.topic))];
-  filterRow.innerHTML = topics.map(t => {
-    const label = t === 'all' ? 'All' : `${topicEmoji(t)} ${t}`;
-    return `<div class="chip ${currentLibFilter === t || (t==='all' && currentLibFilter==='all') ? 'active' : ''}" data-filter="${t}" onclick="libFilter('${t}', this)">${label}</div>`;
+  const topics = ['all', ...new Set(ideas.map(i=>i.topic))];
+  document.getElementById('libFilters').innerHTML = topics.map(t => {
+    const label = t === 'all' ? 'All' : `${te(t)} ${t}`;
+    return `<div class="chip ${libFilter===t?'active':''}" onclick="setLibFilter('${t}',this)">${label}</div>`;
   }).join('');
 
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No ideas here</div><div class="empty-sub">Start stashing ideas to build your library.</div></div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(i => cardHTML(i)).join('');
+  c.innerHTML = filtered.length
+    ? filtered.map(i => cardHTML(i)).join('')
+    : `<div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No ideas here</div><div class="empty-sub">Start stashing!</div></div>`;
 }
 
-function libFilter(topic, el) {
-  currentLibFilter = topic;
+function setLibFilter(f, el) {
+  libFilter = f;
   renderLibrary();
 }
 
-function renderFavorites() {
+function renderFavs() {
   const favs = ideas.filter(i => i.liked);
   document.getElementById('favCount').textContent = favs.length;
-  const container = document.getElementById('favCards');
-  if (favs.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">❤️</div><div class="empty-title">No favorites yet</div><div class="empty-sub">Tap the heart on any idea to save it here.</div></div>`;
-    return;
-  }
-  container.innerHTML = favs.map(i => cardHTML(i)).join('');
+  document.getElementById('favCards').innerHTML = favs.length
+    ? favs.map(i => cardHTML(i)).join('')
+    : `<div class="empty"><div class="empty-icon">❤️</div><div class="empty-title">No favorites yet</div><div class="empty-sub">Tap ❤️ on any card.</div></div>`;
+}
+
+function renderColls() {
+  document.getElementById('collCount').textContent = collections.length;
+  document.getElementById('collGrid').innerHTML = collections.length
+    ? collections.map(c => {
+        const count = ideas.filter(i=>i.collection===c.id).length;
+        return `<div class="coll-card" onclick="viewColl('${c.id}')">
+          <div class="coll-emoji">${c.emoji}</div>
+          <div class="coll-name">${esc(c.name)}</div>
+          <div class="coll-count">${count} ideas</div>
+        </div>`;
+      }).join('')
+    : `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🗂️</div><div class="empty-title">No collections</div><div class="empty-sub">Create one to organize ideas.</div></div>`;
 }
 
 function renderDaily() {
-  const container = document.getElementById('dailyCards');
-  if (ideas.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🌅</div><div class="empty-title">No ideas to review</div><div class="empty-sub">Stash some ideas first.</div></div>`;
+  if (!ideas.length) {
+    document.getElementById('dailyTitle').textContent = 'No ideas yet';
+    document.getElementById('dailyBody').textContent = 'Stash some ideas first!';
+    document.getElementById('dailyCards').innerHTML = '';
     return;
   }
-  // Show today's featured idea
-  const idx = dailyIndex % ideas.length;
-  const idea = ideas[idx];
+  const idea = ideas[dailyIdx % ideas.length];
   document.getElementById('dailyTitle').textContent = idea.title;
   document.getElementById('dailyBody').textContent = idea.body;
-  document.getElementById('dailyTopic').textContent = topicEmoji(idea.topic) + ' ' + idea.topic;
-
-  // Show all ideas as review cards
-  container.innerHTML = ideas.map(i => cardHTML(i)).join('');
+  document.getElementById('dailyCards').innerHTML = ideas.map(i => cardHTML(i)).join('');
 }
 
-function nextDaily() {
-  dailyIndex = (dailyIndex + 1) % (ideas.length || 1);
-  renderDaily();
-}
-
-function likeCurrentDaily() {
-  const idx = dailyIndex % ideas.length;
-  if (!ideas[idx]) return;
-  ideas[idx].liked = true;
-  saveData();
-  updateAll();
+function nextDaily() { dailyIdx = (dailyIdx + 1) % (ideas.length||1); renderDaily(); }
+function likeDaily() {
+  if (!ideas.length) return;
+  ideas[dailyIdx % ideas.length].liked = true;
+  saveData(); updateStats();
   showToast('❤️ Added to favorites!', 'success');
 }
 
-function renderCollections() {
-  const container = document.getElementById('collGrid');
-  document.getElementById('collCount').textContent = collections.length;
-
-  if (collections.length === 0) {
-    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🗂️</div><div class="empty-title">No collections yet</div><div class="empty-sub">Create collections to organize your ideas by theme or project.</div></div>`;
-    return;
-  }
-
-  container.innerHTML = collections.map(c => {
-    const count = ideas.filter(i => i.collection === c.id).length;
-    return `
-      <div class="collection-card" onclick="viewCollection('${c.id}')">
-        <div class="coll-icon">${c.emoji}</div>
-        <div class="coll-name">${esc(c.name)}</div>
-        <div class="coll-meta">
-          <span>${count} ideas</span>
-          <span>${new Date(c.createdAt).toLocaleDateString()}</span>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function viewCollection(id) {
-  currentLibFilter = 'collection:' + id;
-  showView('library', document.querySelector('[data-view=library]'));
+function viewColl(id) {
+  libFilter = 'coll:' + id;
+  showView('library');
   setTimeout(() => {
-    const coll = collections.find(c => c.id === id);
-    const filtered = ideas.filter(i => i.collection === id);
+    const coll = collections.find(c=>c.id===id);
+    const filtered = ideas.filter(i=>i.collection===id);
     document.getElementById('libCount').textContent = filtered.length;
+    document.getElementById('libFilters').innerHTML = `<div class="chip active">${coll?.emoji} ${esc(coll?.name)}</div><div class="chip" onclick="libFilter='all';renderLibrary()">← All</div>`;
     document.getElementById('libCards').innerHTML = filtered.length
-      ? filtered.map(i => cardHTML(i)).join('')
-      : `<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-title">Empty collection</div><div class="empty-sub">Add ideas to "${coll?.name}" using the 🗂️ button on cards.</div></div>`;
-    document.getElementById('libFilterRow').innerHTML = `<div class="chip active">${coll?.emoji} ${esc(coll?.name)}</div> <div class="chip" onclick="currentLibFilter='all'; renderLibrary()">← All ideas</div>`;
+      ? filtered.map(i=>cardHTML(i)).join('')
+      : `<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-title">Empty</div><div class="empty-sub">Add ideas using 🗂️ on cards.</div></div>`;
   }, 50);
 }
 
-function renderExport() {
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = ideas.filter(i => i.date === today).length;
-  document.getElementById('exportStats').innerHTML = `
-    Total ideas: <strong>${ideas.length}</strong><br>
-    Topics covered: <strong>${new Set(ideas.map(i=>i.topic)).size}</strong><br>
-    Favorites: <strong>${ideas.filter(i=>i.liked).length}</strong><br>
-    Collections: <strong>${collections.length}</strong><br>
-    Added today: <strong>${todayCount}</strong>
-  `;
-}
-
-// ======================================================
+// ═══════════════════════════════════════
 // ACTIONS
-// ======================================================
+// ═══════════════════════════════════════
 function toggleLike(id, btn) {
-  const idea = ideas.find(i => i.id === id);
+  const idea = ideas.find(i=>i.id===id);
   if (!idea) return;
   idea.liked = !idea.liked;
   saveData();
   btn.classList.toggle('liked');
   btn.textContent = idea.liked ? '❤️' : '🤍';
-  updateAll();
-  showToast(idea.liked ? '❤️ Added to favorites' : '💔 Removed', idea.liked ? 'success' : 'info');
+  updateStats();
+  showToast(idea.liked ? '❤️ Saved to favorites' : 'Removed', idea.liked?'success':'info');
 }
 
 function copyCard(id) {
-  const idea = ideas.find(i => i.id === id);
+  const idea = ideas.find(i=>i.id===id);
   if (!idea) return;
-  navigator.clipboard.writeText(`${idea.title}\n\n${idea.body}${idea.tags.length ? '\n\nTags: ' + idea.tags.join(', ') : ''}`);
-  showToast('📋 Copied to clipboard!', 'success');
+  navigator.clipboard.writeText(`${idea.title}\n\n${idea.body}${idea.tags.length?'\n\nTags: '+idea.tags.join(', '):''}`)
+    .then(() => showToast('📋 Copied!', 'success'));
 }
 
 function deleteIdea(id) {
-  ideas = ideas.filter(i => i.id !== id);
+  ideas = ideas.filter(i=>i.id!==id);
   saveData();
-  document.querySelectorAll('#card-' + id).forEach(el => {
-    el.style.transition = 'all 0.25s';
+  document.querySelectorAll('#card-'+id).forEach(el => {
+    el.style.transition = 'all 0.2s';
     el.style.opacity = '0';
     el.style.transform = 'scale(0.9)';
-    setTimeout(() => el.remove(), 260);
+    setTimeout(() => el.remove(), 220);
   });
-  updateAll();
-  showToast('🗑️ Idea deleted', 'info');
+  updateStats();
+  document.getElementById('recentCount').textContent = ideas.length;
+  showToast('🗑️ Deleted', 'info');
 }
 
-// ======================================================
-// COLLECTIONS MANAGEMENT
-// ======================================================
-function openNewCollection() {
-  document.getElementById('collModal').classList.add('show');
-}
+// ═══════════════════════════════════════
+// COLLECTIONS
+// ═══════════════════════════════════════
+function openNewColl() { document.getElementById('collModal').classList.add('show'); }
 
-function createCollection() {
+function createColl() {
   const name = document.getElementById('collName').value.trim();
-  const emoji = document.getElementById('collEmoji').value;
-  if (!name) { showToast('⚠️ Enter a collection name', 'warn'); return; }
-  const coll = { id: 'c' + Date.now(), name, emoji, createdAt: new Date().toISOString() };
-  collections.push(coll);
-  saveData();
-  closeModal();
-  renderCollections();
-  updateAll();
-  showToast(`🗂️ Collection "${name}" created!`, 'success');
+  if (!name) { showToast('⚠️ Enter a name', 'warn'); return; }
+  const c = { id:'c'+Date.now(), name, emoji:document.getElementById('collEmoji').value, createdAt:new Date().toISOString() };
+  collections.push(c);
+  saveData(); closeModal(); renderColls();
+  showToast(`🗂️ "${name}" created!`, 'success');
   document.getElementById('collName').value = '';
 }
 
-function openAddToCollection(ideaId) {
-  addToCollIdeaId = ideaId;
+function openAddColl(ideaId) {
+  addCollId = ideaId;
   const list = document.getElementById('collPickList');
-  if (collections.length === 0) {
-    list.innerHTML = `<p style="color:var(--text3); font-size:13px;">No collections yet. <button class="btn btn-ghost btn-sm" onclick="closeModal(); openNewCollection()">Create one →</button></p>`;
+  if (!collections.length) {
+    list.innerHTML = `<p style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">No collections yet.<br><button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="closeModal();openNewColl()">Create one →</button></p>`;
   } else {
     list.innerHTML = collections.map(c => {
-      const count = ideas.filter(i => i.collection === c.id).length;
-      return `<button class="btn btn-ghost" style="justify-content:flex-start; gap:10px;" onclick="addToCollection('${c.id}')">
-        ${c.emoji} <strong>${esc(c.name)}</strong> <span style="color:var(--text3); font-size:11px; margin-left:auto;">${count} ideas</span>
+      const count = ideas.filter(i=>i.collection===c.id).length;
+      return `<button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;width:100%;margin-top:0;" onclick="addToColl('${c.id}')">
+        ${c.emoji} <strong>${esc(c.name)}</strong> <span style="color:var(--text3);font-size:11px;margin-left:auto;">${count}</span>
       </button>`;
     }).join('');
   }
-  document.getElementById('addToCollModal').classList.add('show');
+  document.getElementById('addCollModal').classList.add('show');
 }
 
-function addToCollection(collId) {
-  const idea = ideas.find(i => i.id === addToCollIdeaId);
+function addToColl(collId) {
+  const idea = ideas.find(i=>i.id===addCollId);
   if (!idea) return;
   idea.collection = collId;
   saveData();
-  const coll = collections.find(c => c.id === collId);
+  const coll = collections.find(c=>c.id===collId);
   closeModal();
-  // Update button in all visible cards
-  document.querySelectorAll(`#card-${addToCollIdeaId} .card-action`).forEach(btn => {
-    if (btn.title === 'Add to collection' || btn.title?.startsWith('In collection')) {
-      btn.className = 'card-action in-collection';
-      btn.innerHTML = '🗂️';
-      btn.title = `In collection: ${coll?.name}`;
-      btn.setAttribute('onclick', `removeFromCollection(${addToCollIdeaId})`);
+  // Update card buttons
+  document.querySelectorAll(`#card-${addCollId} .card-btn`).forEach(b => {
+    if (b.title === 'Add to collection') {
+      b.className = 'card-btn in-coll';
+      b.textContent = '🗂️';
+      b.title = 'Remove from collection';
+      b.setAttribute('onclick', `removeFromColl(${addCollId})`);
     }
   });
-  updateAll();
-  showToast(`🗂️ Added to "${coll?.name}"`, 'success');
+  updateStats();
+  showToast(`Added to "${coll?.name}"`, 'success');
 }
 
-function removeFromCollection(ideaId) {
-  const idea = ideas.find(i => i.id === ideaId);
+function removeFromColl(ideaId) {
+  const idea = ideas.find(i=>i.id===ideaId);
   if (!idea) return;
-  const collName = collections.find(c => c.id === idea.collection)?.name;
   idea.collection = null;
   saveData();
-  document.querySelectorAll(`#card-${ideaId} .card-action.in-collection`).forEach(btn => {
-    btn.className = 'card-action';
-    btn.innerHTML = '🗂️';
-    btn.title = 'Add to collection';
-    btn.setAttribute('onclick', `openAddToCollection(${ideaId})`);
+  document.querySelectorAll(`#card-${ideaId} .card-btn.in-coll`).forEach(b => {
+    b.className = 'card-btn';
+    b.textContent = '🗂️';
+    b.title = 'Add to collection';
+    b.setAttribute('onclick', `openAddColl(${ideaId})`);
   });
-  updateAll();
-  showToast(`Removed from "${collName}"`, 'info');
+  updateStats();
+  showToast('Removed from collection', 'info');
 }
 
 function closeModal() {
   document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('show'));
 }
 
-document.querySelectorAll('.modal-bg').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(); });
-});
-
-// ======================================================
-// SEARCH
-// ======================================================
-function quickSearchFn(q) {
-  if (!q) return;
-  showView('search', document.querySelector('[data-view=search]'));
-  document.getElementById('searchFullInput').value = q;
-  fullSearch(q);
+// ═══════════════════════════════════════
+// TEST API KEY
+// ═══════════════════════════════════════
+async function testKey(p) {
+  const key = p === 'claude'
+    ? document.getElementById('claudeKey').value.trim()
+    : document.getElementById('gptKey').value.trim();
+  if (!key) { showToast('⚠️ Enter a key first', 'warn'); return; }
+  showToast('🔑 Testing…');
+  try {
+    if (p === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:5, messages:[{role:'user',content:'Hi'}] })
+      });
+      if (!res.ok) throw new Error('Invalid');
+    } else {
+      const res = await fetch('https://api.openai.com/v1/models', { headers:{ 'Authorization':'Bearer '+key } });
+      if (!res.ok) throw new Error('Invalid');
+    }
+    showToast('✅ Key is valid! Ready to extract.', 'success');
+  } catch {
+    showToast('❌ Invalid API key. Check and retry.', 'danger');
+  }
 }
 
-function fullSearch(q) {
-  const container = document.getElementById('searchResults');
-  if (!q.trim()) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Search your knowledge base</div><div class="empty-sub">Type anything to find ideas.</div></div>`;
-    return;
-  }
-  const lower = q.toLowerCase();
-  const results = ideas.filter(i =>
-    i.title.toLowerCase().includes(lower) ||
-    i.body.toLowerCase().includes(lower) ||
-    i.topic.toLowerCase().includes(lower) ||
-    (i.tags || []).some(t => t.includes(lower)) ||
-    (i.source || '').toLowerCase().includes(lower)
-  );
-  if (results.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No results for "${q}"</div><div class="empty-sub">Try different keywords.</div></div>`;
-    return;
-  }
-  container.innerHTML = results.map(i => cardHTML(i)).join('');
-}
-
-// ======================================================
+// ═══════════════════════════════════════
 // EXPORT
-// ======================================================
+// ═══════════════════════════════════════
 function exportData(format) {
-  if (ideas.length === 0) { showToast('⚠️ No ideas to export', 'warn'); return; }
-  let content = '', filename = '', mime = '';
-
-  if (format === 'json') {
-    content = JSON.stringify({ ideas, collections, exportedAt: new Date().toISOString() }, null, 2);
-    filename = 'stashify-ideas.json';
-    mime = 'application/json';
-  } else if (format === 'csv') {
-    const rows = [['ID','Title','Body','Topic','Tags','Source','Date','Liked']];
-    ideas.forEach(i => rows.push([i.id, `"${i.title.replace(/"/g,'""')}"`, `"${i.body.replace(/"/g,'""')}"`, i.topic, (i.tags||[]).join(';'), i.source||'', i.date||'', i.liked]));
-    content = rows.map(r => r.join(',')).join('\n');
-    filename = 'stashify-ideas.csv';
-    mime = 'text/csv';
-  } else if (format === 'markdown') {
+  if (!ideas.length) { showToast('⚠️ No ideas to export', 'warn'); return; }
+  let content='', filename='', mime='';
+  if (format==='json') {
+    content = JSON.stringify({ideas,collections,exportedAt:new Date().toISOString()},null,2);
+    filename='stashify.json'; mime='application/json';
+  } else if (format==='markdown') {
     const byTopic = {};
-    ideas.forEach(i => { (byTopic[i.topic] = byTopic[i.topic]||[]).push(i); });
-    content = `# Stashify Knowledge Export\n\nExported: ${new Date().toLocaleString()}\n\n`;
-    Object.entries(byTopic).forEach(([topic, items]) => {
-      content += `## ${topicEmoji(topic)} ${topic}\n\n`;
-      items.forEach(i => { content += `### ${i.title}\n\n${i.body}\n\n${i.tags.length ? `**Tags:** ${i.tags.join(', ')}\n\n` : ''}`; });
+    ideas.forEach(i => { (byTopic[i.topic]=byTopic[i.topic]||[]).push(i); });
+    content = `# Stashify Export — ${ideas.length} Ideas\n\n`;
+    Object.entries(byTopic).forEach(([t,items]) => {
+      content += `## ${te(t)} ${t}\n\n`;
+      items.forEach(i => { content += `### ${i.title}\n\n${i.body}\n\n${i.tags.length?`Tags: ${i.tags.join(', ')}\n\n`:''}`; });
     });
-    filename = 'stashify-ideas.md';
-    mime = 'text/markdown';
-  } else if (format === 'txt') {
-    content = ideas.map(i => `${i.title}\n${'─'.repeat(50)}\n${i.body}\n\nTopic: ${i.topic} | Date: ${i.date||''}${i.tags.length?` | Tags: ${i.tags.join(', ')}`:'`}\n\n`).join('\n');
-    filename = 'stashify-ideas.txt';
-    mime = 'text/plain';
-  } else if (format === 'html') {
-    content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stashify Export</title><style>body{font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px;background:#f5f5f5;} .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);} h2{color:#7c3aed;font-size:18px;margin-bottom:8px;} p{color:#555;line-height:1.6;} .meta{font-size:12px;color:#999;margin-top:12px;} .tag{background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:4px;font-size:11px;margin-right:4px;}</style></head><body><h1>Stashify Export — ${ideas.length} Ideas</h1>${ideas.map(i=>`<div class="card"><h2>${i.title}</h2><p>${i.body}</p><div class="meta">${topicEmoji(i.topic)} ${i.topic} · ${i.date||''}${(i.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`).join('')}</body></html>`;
-
-```
-filename = 'stashify-ideas.html';
-mime = 'text/html';
-```
-
+    filename='stashify.md'; mime='text/markdown';
+  } else if (format==='csv') {
+    content = 'Title,Body,Topic,Tags,Source,Date\n' + ideas.map(i=>`"${i.title.replace(/"/g,'""')}","${i.body.replace(/"/g,'""')}",${i.topic},"${(i.tags||[]).join(';')}",${i.source||''},${i.date||''}`).join('\n');
+    filename='stashify.csv'; mime='text/csv';
+  }
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([content],{type:mime})), download: filename });
+  a.click();
+  showToast(`📥 Downloading ${filename}`, 'success');
 }
 
-const blob = new Blob([content], { type: mime });
-const url = URL.createObjectURL(blob);
-const a = document.createElement(‘a’);
-a.href = url; a.download = filename; a.click();
-URL.revokeObjectURL(url);
-showToast(`📥 Downloaded ${filename}`, ‘success’);
+function copyAll() {
+  const text = ideas.map(i=>`${i.title}\n${i.body}`).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(() => showToast('📎 All ideas copied!', 'success'));
 }
 
-function copyAllToClipboard() {
-const text = ideas.map(i => `${i.title}\n${i.body}`).join(’\n\n—\n\n’);
-navigator.clipboard.writeText(text);
-showToast(‘📎 All ideas copied to clipboard!’, ‘success’);
-}
-
-// ======================================================
-// MISC ACTIONS
-// ======================================================
 function clearAll() {
-if (!confirm(`Delete all ${ideas.length} stashed ideas? This cannot be undone.`)) return;
-ideas = [];
-saveData();
-document.getElementById(‘recentCards’).innerHTML = `<div class="empty"><div class="empty-icon">🌱</div><div class="empty-title">Your knowledge garden awaits</div><div class="empty-sub">Paste any article above and let AI extract the key insights.</div></div>`;
-updateAll();
-showToast(‘🗑️ All ideas cleared’, ‘info’);
+  if (!confirm(`Delete all ${ideas.length} ideas? Cannot be undone.`)) return;
+  ideas = [];
+  saveData();
+  document.getElementById('recentCards').innerHTML = `<div class="empty"><div class="empty-icon">🌱</div><div class="empty-title">Your garden awaits</div><div class="empty-sub">Paste any article and let AI extract ideas.</div></div>`;
+  updateStats();
+  showToast('🗑️ All ideas cleared', 'info');
 }
 
-// ======================================================
-// DATA & STATE
-// ======================================================
+// ═══════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════
+function updateStats() {
+  const today = new Date().toISOString().split('T')[0];
+  const favCount = ideas.filter(i=>i.liked).length;
+  document.getElementById('s-ideas').textContent = ideas.length;
+  document.getElementById('s-favs').textContent = favCount;
+  document.getElementById('s-topics').textContent = new Set(ideas.map(i=>i.topic)).size;
+  document.getElementById('s-today').textContent = ideas.filter(i=>i.date===today).length;
+  document.getElementById('recentCount').textContent = ideas.length;
+  document.getElementById('favCount').textContent = favCount;
+  document.getElementById('collCount').textContent = collections.length;
+  // Nav dots
+  document.getElementById('dot-library').classList.toggle('show', ideas.length > 0);
+  document.getElementById('dot-favs').classList.toggle('show', favCount > 0);
+}
+
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
 function saveData() {
-localStorage.setItem(‘sz-ideas’, JSON.stringify(ideas));
-localStorage.setItem(‘sz-collections’, JSON.stringify(collections));
+  localStorage.setItem('sz-ideas', JSON.stringify(ideas));
+  localStorage.setItem('sz-collections', JSON.stringify(collections));
 }
 
 function saveKeys() {
-localStorage.setItem(‘sz-claude-key’, document.getElementById(‘claudeKey’).value);
-localStorage.setItem(‘sz-gpt-key’, document.getElementById(‘gptKey’).value);
+  localStorage.setItem('sz-claude-key', document.getElementById('claudeKey').value);
+  localStorage.setItem('sz-gpt-key', document.getElementById('gptKey').value);
 }
 
 function saveSettings() {
-settings = {
-defaultProvider: document.getElementById(‘defaultProvider’)?.value,
-claudeModel: document.getElementById(‘claudeModel’)?.value,
-gptModel: document.getElementById(‘gptModel’)?.value,
-};
-localStorage.setItem(‘sz-settings’, JSON.stringify(settings));
-showToast(‘✅ Settings saved’, ‘success’);
+  localStorage.setItem('sz-claude-model', document.getElementById('claudeModel').value);
+  localStorage.setItem('sz-gpt-model', document.getElementById('gptModel').value);
 }
 
-function updateAll() {
-const today = new Date().toISOString().split(‘T’)[0];
-document.getElementById(‘stat-ideas’).textContent = ideas.length;
-document.getElementById(‘stat-topics’).textContent = new Set(ideas.map(i=>i.topic)).size;
-document.getElementById(‘stat-favs’).textContent = ideas.filter(i=>i.liked).length;
-document.getElementById(‘stat-colls’).textContent = collections.length;
-document.getElementById(‘stat-today’).textContent = ideas.filter(i=>i.date===today).length;
-document.getElementById(‘nav-library-count’).textContent = ideas.length;
-document.getElementById(‘nav-fav-count’).textContent = ideas.filter(i=>i.liked).length;
-document.getElementById(‘nav-coll-count’).textContent = collections.length;
-document.getElementById(‘recentCount’).textContent = ideas.length;
-}
-
-// ======================================================
+// ═══════════════════════════════════════
 // TOAST
-// ======================================================
-function showToast(msg, type = ‘info’) {
-const container = document.getElementById(‘toastContainer’);
-const icons = { success: ‘✅’, danger: ‘❌’, warn: ‘⚠️’, info: ‘ℹ️’ };
-const toast = document.createElement(‘div’);
-toast.className = ‘toast’;
-toast.innerHTML = `<span>${icons[type]||'ℹ️'}</span> ${msg}`;
-container.appendChild(toast);
-setTimeout(() => {
-toast.classList.add(‘fade-out’);
-setTimeout(() => toast.remove(), 350);
-}, 3000);
+// ═══════════════════════════════════════
+function showToast(msg, type='info') {
+  const wrap = document.getElementById('toastWrap');
+  const icons = { success:'✅', danger:'❌', warn:'⚠️', info:'ℹ️' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `${icons[type]||'ℹ️'} ${msg}`;
+  wrap.innerHTML = '';
+  wrap.appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(()=>el.remove(), 300); }, 2800);
 }
 
-// ======================================================
+// ═══════════════════════════════════════
 // INIT
-// ======================================================
+// ═══════════════════════════════════════
 window.onload = () => {
-// Restore API keys
-const ck = localStorage.getItem(‘sz-claude-key’);
-const gk = localStorage.getItem(‘sz-gpt-key’);
-if (ck) document.getElementById(‘claudeKey’).value = ck;
-if (gk) document.getElementById(‘gptKey’).value = gk;
+  // Restore keys
+  const ck = localStorage.getItem('sz-claude-key');
+  const gk = localStorage.getItem('sz-gpt-key');
+  if (ck) document.getElementById('claudeKey').value = ck;
+  if (gk) document.getElementById('gptKey').value = gk;
 
-// Restore settings
-if (settings.defaultProvider) {
-const btn = document.querySelector(`.prov-btn[data-prov="${settings.defaultProvider}"]`);
-if (btn) setProvider(settings.defaultProvider, btn);
-}
-if (settings.claudeModel) {
-const el = document.getElementById(‘claudeModel’);
-if (el) el.value = settings.claudeModel;
-}
-if (settings.gptModel) {
-const el = document.getElementById(‘gptModel’);
-if (el) el.value = settings.gptModel;
-}
-if (settings.defaultProvider) {
-const el = document.getElementById(‘defaultProvider’);
-if (el) el.value = settings.defaultProvider;
-}
+  // Restore models
+  const cm = localStorage.getItem('sz-claude-model');
+  const gm = localStorage.getItem('sz-gpt-model');
+  if (cm) document.getElementById('claudeModel').value = cm;
+  if (gm) document.getElementById('gptModel').value = gm;
 
-updateAll();
+  // Restore provider
+  setProvider(provider);
 
-// Render recent on home
-if (ideas.length > 0) {
-const container = document.getElementById(‘recentCards’);
-container.innerHTML = ideas.slice(0, 12).map((idea, i) => cardHTML(idea, i * 0.05)).join(’’);
-}
+  // Render existing ideas on home
+  if (ideas.length) {
+    const c = document.getElementById('recentCards');
+    c.innerHTML = ideas.slice(0,15).map((i,idx) => cardHTML(i, idx*0.04)).join('');
+  }
 
-// Auto-save keys on input
-document.getElementById(‘claudeKey’).addEventListener(‘input’, saveKeys);
-document.getElementById(‘gptKey’).addEventListener(‘input’, saveKeys);
+  updateStats();
 
-// Quick search enter
-document.getElementById(‘quickSearch’).addEventListener(‘keydown’, e => {
-if (e.key === ‘Enter’) quickSearchFn(e.target.value);
-});
-
-// Load any sample ideas for demo
-if (ideas.length === 0) {
-const sample = [
-{ id: 1, title: “The Feynman Technique Accelerates Mastery”, body: “True understanding emerges when you can explain any concept in simple language. Teaching forces clarity — gaps in your knowledge become immediately visible when you try to simplify.”, tags: [“learning”,“feynman”,“mastery”], topic: “Productivity”, source: “Sample”, provider: “claude”, liked: false, collection: null, date: new Date().toISOString().split(‘T’)[0], createdAt: new Date().toISOString() },
-{ id: 2, title: “Deep Work Is the Superpower of the 21st Century”, body: “Concentrated, distraction-free work on cognitively demanding tasks is increasingly rare — and therefore increasingly valuable. Those who cultivate deep focus will thrive.”, tags: [“focus”,“deepwork”,“productivity”], topic: “Productivity”, source: “Sample”, provider: “claude”, liked: true, collection: null, date: new Date().toISOString().split(‘T’)[0], createdAt: new Date().toISOString() },
-{ id: 3, title: “Cognitive Biases Shape Every Decision We Make”, body: “The human brain uses mental shortcuts that often lead to systematic errors in judgment. Recognizing these patterns — anchoring, availability bias, confirmation bias — is the first step to thinking more clearly.”, tags: [“psychology”,“bias”,“thinking”], topic: “Psychology”, source: “Sample”, provider: “gpt”, liked: false, collection: null, date: new Date().toISOString().split(‘T’)[0], createdAt: new Date().toISOString() },
-];
-ideas = sample;
-saveData();
-const container = document.getElementById(‘recentCards’);
-container.innerHTML = ideas.map((idea, i) => cardHTML(idea, i * 0.06)).join(’’);
-updateAll();
-}
+  // Add sample if empty
+  if (!ideas.length) {
+    ideas = [
+      { id:1, title:"The Feynman Technique Accelerates Mastery", body:"True understanding emerges when you can explain any concept simply. Teaching forces clarity — gaps in your knowledge become immediately visible.", tags:["learning","mastery"], topic:"Productivity", source:"Sample", provider:"claude", liked:false, collection:null, date:new Date().toISOString().split('T')[0], createdAt:new Date().toISOString() },
+      { id:2, title:"Deep Work Is the Superpower of the 21st Century", body:"Concentrated, distraction-free work on demanding tasks is increasingly rare and therefore increasingly valuable. Cultivate deep focus to thrive.", tags:["focus","productivity"], topic:"Productivity", source:"Sample", provider:"claude", liked:true, collection:null, date:new Date().toISOString().split('T')[0], createdAt:new Date().toISOString() },
+      { id:3, title:"Cognitive Biases Shape Every Decision We Make", body:"The brain uses mental shortcuts that lead to systematic errors. Recognizing anchoring, availability bias, and confirmation bias is the first step to clearer thinking.", tags:["psychology","bias"], topic:"Psychology", source:"Sample", provider:"gpt", liked:false, collection:null, date:new Date().toISOString().split('T')[0], createdAt:new Date().toISOString() },
+    ];
+    saveData();
+    const c = document.getElementById('recentCards');
+    c.innerHTML = ideas.map((i,idx) => cardHTML(i, idx*0.07)).join('');
+    updateStats();
+  }
 };
 </script>
+
 </body>
 </html>
