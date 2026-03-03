@@ -152,18 +152,6 @@ select option{background:#1a1a1a;}
 <body>
 <div id="app">
 
-<!-- ONBOARDING -->
-
-<div id="onboarding" style="display:none;position:fixed;inset:0;background:#111;z-index:9000;overflow-y:auto;padding:40px 20px;">
-  <div style="max-width:480px;margin:0 auto;">
-    <div style="font-size:44px;text-align:center;margin-bottom:16px;">🌱</div>
-    <div style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;text-align:center;margin-bottom:8px;">What are you into?</div>
-    <div style="font-size:14px;color:#999;text-align:center;margin-bottom:28px;line-height:1.5;">Pick your interests — Stashify will generate fresh ideas for you every day</div>
-    <div id="intGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;"></div>
-    <button class="btn btn-p" id="intBtn" onclick="saveInterests()" disabled>Continue →</button>
-  </div>
-</div>
-
 <div class="topbar">
   <div class="logo">Sta<b>shi</b>fy</div>
   <div class="ai-sw">
@@ -262,11 +250,12 @@ select option{background:#1a1a1a;}
       <button class="btn btn-p" style="flex:1" onclick="loveDaily()">❤️ Love it</button>
     </div>
   </div>
-  <div class="ph">
-    ✨ Today's Ideas
-    <button onclick="genDaily()" id="genBtn" style="font-size:11px;font-weight:700;padding:7px 14px;border-radius:20px;border:1px solid var(--purple);background:rgba(139,92,246,.1);color:var(--purple);cursor:pointer;">🔄 Refresh</button>
+  <div class="panel">
+    <div class="ptitle">🎯 What to explore today?</div>
+    <div id="dailyTopicGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>
+    <div class="ldr" id="dailyLdr"><div class="dots"><span></span><span></span><span></span></div><div class="lmsg">Generating ideas…</div></div>
+    <button class="btn btn-p" id="genBtn" onclick="genDaily()" disabled>✨ Generate Ideas</button>
   </div>
-  <div class="ldr" id="dailyLdr"><div class="dots"><span></span><span></span><span></span></div><div class="lmsg">Generating ideas…</div></div>
   <div id="genList"></div>
   <div class="ph" style="margin-top:8px;">📚 All Stashed</div>
   <div id="dailyList"></div>
@@ -329,11 +318,7 @@ select option{background:#1a1a1a;}
       </select>
     </div>
   </div>
-  <div class="panel">
-    <div class="ptitle">🎯 My Interests</div>
-    <div id="interestsList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
-    <button class="btn btn-g" onclick="showOnboarding()" style="margin-top:0;">Change Interests</button>
-  </div>
+
   <div class="panel">
     <div class="ptitle">🗂️ Collections</div>
     <button class="btn btn-g" onclick="openNewColl()" style="margin-top:0;">+ New Collection</button>
@@ -431,7 +416,7 @@ function goPage(p) {
   if(p==='daily') renderDaily();
   if(p==='explore') renderExplore();
   if(p==='books') renderSavedBooks();
-  if(p==='settings'){renderColls();renderInterestsList();}
+  if(p==='settings') renderColls();
   updateStats();
 }
 
@@ -477,71 +462,65 @@ async function aiCall(prompt, sys) {
   }
 }
 
-// ── ONBOARDING ──
-function showOnboarding() {
-  document.getElementById('onboarding').style.display = 'block';
-  document.getElementById('intGrid').innerHTML = INT_OPTS.map(function(o) {
-    var on = interests.indexOf(o.id) >= 0;
-    return '<div class="int-item' + (on?' on':'') + '" id="int-'+o.id+'" onclick="toggleInt(\''+o.id+'\')">' +
-      '<div style="font-size:28px;margin-bottom:6px;">'+o.e+'</div>' +
-      '<div style="font-size:13px;font-weight:700;">'+o.id+'</div></div>';
+// ── DAILY TOPIC PICKER ──
+var selectedTopics = [];
+
+function renderDailyTopicPicker() {
+  selectedTopics = [];
+  var btn = document.getElementById('genBtn');
+  if(btn) btn.disabled = true;
+  var grid = document.getElementById('dailyTopicGrid');
+  if(!grid) return;
+  grid.innerHTML = INT_OPTS.map(function(o) {
+    return '<div class="int-item" id="dt-'+o.id+'" onclick="toggleDailyTopic(this.dataset.id)" data-id="'+o.id+'">' +
+      '<div style="font-size:24px;margin-bottom:5px;">'+o.e+'</div>' +
+      '<div style="font-size:12px;font-weight:700;">'+o.id+'</div>' +
+      '</div>';
   }).join('');
-  document.getElementById('intBtn').disabled = interests.length === 0;
 }
 
-function toggleInt(id) {
-  var el = document.getElementById('int-'+id);
-  var idx = interests.indexOf(id);
-  if(idx >= 0) { interests.splice(idx, 1); el.classList.remove('on'); }
-  else { interests.push(id); el.classList.add('on'); }
-  document.getElementById('intBtn').disabled = interests.length === 0;
-}
-
-function saveInterests() {
-  if(!interests.length) return;
-  localStorage.setItem('sz5-interests', JSON.stringify(interests));
-  document.getElementById('onboarding').style.display = 'none';
-  renderInterestsList();
-  toast('✨ Interests saved!', 'ok');
-  genDaily();
-  goPage('daily');
-}
-
-function renderInterestsList() {
-  var c = document.getElementById('interestsList');
-  if(!c) return;
-  c.innerHTML = interests.length
-    ? interests.map(function(i){return '<span style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(139,92,246,.15);color:var(--purple);border:1px solid rgba(139,92,246,.3);">'+(TE[i]||'')+'  '+i+'</span>';}).join('')
-    : '<span style="font-size:13px;color:var(--text3);">No interests set</span>';
+function toggleDailyTopic(id) {
+  var el = document.querySelector('[data-id="'+id+'"]');
+  var idx = selectedTopics.indexOf(id);
+  if(idx >= 0) { selectedTopics.splice(idx, 1); el.classList.remove('on'); }
+  else { selectedTopics.push(id); el.classList.add('on'); }
+  var btn = document.getElementById('genBtn');
+  if(btn) btn.disabled = selectedTopics.length === 0;
 }
 
 // ── DAILY GENERATION ──
 async function genDaily() {
+  if(!selectedTopics.length) { toast('⚠️ Pick at least one topic', 'warn'); return; }
   var today = new Date().toISOString().split('T')[0];
-  var myInt = interests.length ? interests : ['Psychology','Productivity','Philosophy'];
-  var topic = myInt[Math.floor(Math.random() * myInt.length)];
   var btn = document.getElementById('genBtn');
   var ldr = document.getElementById('dailyLdr');
   if(btn) btn.disabled = true;
   if(ldr) ldr.classList.add('on');
+  genIdeas = [];
+  document.getElementById('genList').innerHTML = '';
   try {
-    var prompt = 'Generate 5 surprising and fascinating ideas about ' + topic + '. Each idea should feel like a discovery. Return ONLY a JSON array: [{"title":"compelling short title","body":"2-3 sentences of genuine insight","tags":["tag1","tag2"]}]';
-    var raw = await aiCall(prompt, 'You are a brilliant curator of ideas. Generate ideas that feel like discoveries, not textbook facts. Be original and thought-provoking.');
-    var m = raw.match(/\[[\s\S]*\]/);
-    if(!m) throw new Error('Parse error');
-    var parsed = JSON.parse(m[0]);
-    genIdeas = parsed.map(function(item, i) {
-      return {id:'g'+Date.now()+i, title:item.title, body:item.body, tags:Array.isArray(item.tags)?item.tags:[], topic:topic, src:'✨ Daily', prov:prov, liked:false, date:today, at:new Date().toISOString()};
-    });
+    for(var t = 0; t < selectedTopics.length; t++) {
+      var topic = selectedTopics[t];
+      document.querySelector('#dailyLdr .lmsg').textContent = 'Generating ' + topic + ' ideas…';
+      var prompt = 'Generate 5 surprising and fascinating ideas about ' + topic + '. Each idea should feel like a real discovery. Return ONLY a JSON array: [{"title":"compelling short title","body":"2-3 sentences of genuine insight","tags":["tag1","tag2"]}]';
+      var raw = await aiCall(prompt, 'You are a brilliant curator of ideas. Generate ideas that feel like discoveries, not textbook facts. Be original and thought-provoking.');
+      var m = raw.match(/\[[\s\S]*\]/);
+      if(!m) continue;
+      var parsed = JSON.parse(m[0]);
+      var batch = parsed.map(function(item, i) {
+        return {id:'g'+Date.now()+t+i, title:item.title, body:item.body, tags:Array.isArray(item.tags)?item.tags:[], topic:topic, src:'✨ Daily', prov:prov, liked:false, date:today, at:new Date().toISOString()};
+      });
+      genIdeas = genIdeas.concat(batch);
+    }
     localStorage.setItem('sz5-genideas', JSON.stringify(genIdeas));
     localStorage.setItem('sz5-lastgen', today);
     lastGenDate = today;
     renderGenList();
-    toast('✨ Fresh ideas generated!', 'ok');
+    toast('✨ ' + genIdeas.length + ' ideas generated!', 'ok');
   } catch(err) {
     toast('❌ '+err.message, 'err');
   } finally {
-    if(btn) btn.disabled = false;
+    if(btn) { btn.disabled = selectedTopics.length === 0; }
     if(ldr) ldr.classList.remove('on');
   }
 }
@@ -837,9 +816,10 @@ function renderLib() {
 
 // ── DAILY REVIEW ──
 function renderDaily() {
+  renderDailyTopicPicker();
   renderGenList();
   var today = new Date().toISOString().split('T')[0];
-  if(!genIdeas.length || lastGenDate!==today) genDaily();
+  // Don't auto-generate — user picks topics first
   if(!ideas.length){document.getElementById('dTitle').textContent='No ideas yet';document.getElementById('dBody').textContent='Stash some ideas first!';document.getElementById('dailyList').innerHTML='';return;}
   var idea = ideas[dayIdx%ideas.length];
   document.getElementById('dTitle').textContent = idea.title;
@@ -989,9 +969,6 @@ window.onload = function() {
   if(gemm) document.getElementById('gemModel').value=gemm;
   setProv(prov);
   if(ideas.length) document.getElementById('recentList').innerHTML=ideas.slice(0,10).map(function(i){return cardHTML(i);}).join('');
-  if(!localStorage.getItem('sz5-interests')) {
-    showOnboarding();
-  }
   if(!ideas.length) {
     ideas=[
       {id:1,title:"The Feynman Technique Accelerates Mastery",body:"True understanding emerges when you can explain concepts simply. Teaching forces clarity — gaps in knowledge become immediately visible.",tags:["learning","mastery"],topic:"Productivity",src:"Sample",prov:"gemini",liked:false,coll:null,date:new Date().toISOString().split('T')[0],at:new Date().toISOString()},
