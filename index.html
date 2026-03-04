@@ -63,7 +63,7 @@ select option{background:#1a1a1a;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc,var(--purple));}
 .ctopic{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--cc,var(--purple));margin-bottom:8px;}
 .ctitle{font-family:'Playfair Display',serif;font-size:17px;line-height:1.3;margin-bottom:8px;}
-.cbody{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;}
+.cbody{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
 .ctags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
 .ctag{font-size:10px;font-weight:600;padding:3px 8px;background:rgba(139,92,246,.12);color:#a78bfa;border-radius:5px;}
 .cbot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);}
@@ -502,7 +502,7 @@ async function genDaily() {
     for(var t = 0; t < selectedTopics.length; t++) {
       var topic = selectedTopics[t];
       document.querySelector('#dailyLdr .lmsg').textContent = 'Generating ' + topic + ' ideas…';
-      var prompt = 'Generate 5 surprising and fascinating ideas about ' + topic + '. Each idea should feel like a real discovery. Return ONLY a JSON array: [{"title":"compelling short title","body":"2-3 sentences of genuine insight","tags":["tag1","tag2"]}]';
+      var prompt = 'Generate 5 surprising and fascinating ideas about ' + topic + '. Each idea should feel like a real discovery — go deep. Return ONLY a JSON array: [{"title":"compelling short title (max 12 words)","body":"Write 100-150 words of rich, substantive insight. Explain the idea thoroughly with real-world examples, nuance, and why it matters. Make it feel like a mini-essay, not a headline.","tags":["tag1","tag2"]}]';
       var raw = await aiCall(prompt, 'You are a brilliant curator of ideas. Generate ideas that feel like discoveries, not textbook facts. Be original and thought-provoking.');
       var m = raw.match(/\[[\s\S]*\]/);
       if(!m) continue;
@@ -577,7 +577,7 @@ async function extract() {
   var msgs=['Reading content…','Finding insights…','Making cards…']; var mi=0;
   var t0=setInterval(function(){document.getElementById('lmsg').textContent=msgs[mi++%msgs.length];},1800);
   try {
-    var prompt = 'Extract exactly '+cnt+' key ideas from this text. Return ONLY a JSON array: [{"title":"max 12 words","body":"2-3 sentences why it matters","tags":["tag1","tag2"]}]\n\nTEXT:\n'+text.substring(0,9000);
+    var prompt = 'Extract exactly '+cnt+' key ideas from this text. Return ONLY a JSON array: [{"title":"max 12 words","body":"Write 100-150 words explaining this idea in depth — include context, examples, nuance, and why it matters. Make it substantive and insightful.","tags":["tag1","tag2"]}]\n\nTEXT:\n'+text.substring(0,9000);
     var raw = await aiCall(prompt, 'You are an expert knowledge curator.');
     var m = raw.match(/\[[\s\S]*\]/);
     if(!m) throw new Error('Could not parse response');
