@@ -250,13 +250,24 @@ select option{background:#1a1a1a;}
       <button class="btn btn-p" style="flex:1" onclick="loveDaily()">❤️ Love it</button>
     </div>
   </div>
+
   <div class="panel">
-    <div class="ptitle">🎯 What to explore today?</div>
+    <div class="ptitle">🎯 Topic Ideas</div>
     <div id="dailyTopicGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>
-    <div class="ldr" id="dailyLdr"><div class="dots"><span></span><span></span><span></span></div><div class="lmsg">Generating ideas…</div></div>
+    <div class="ldr" id="dailyLdr"><div class="dots"><span></span><span></span><span></span></div><div class="lmsg" id="dailyLdrMsg">Generating ideas…</div></div>
     <button class="btn btn-p" id="genBtn" onclick="genDaily()" disabled>✨ Generate Ideas</button>
   </div>
   <div id="genList"></div>
+
+  <div class="panel" style="margin-top:8px;">
+    <div class="ptitle">📰 News Ideas</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Pick sources — AI extracts key ideas from their latest stories</div>
+    <div id="newsSourceGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>
+    <div class="ldr" id="newsLdr"><div class="dots"><span></span><span></span><span></span></div><div class="lmsg" id="newsLdrMsg">Fetching news…</div></div>
+    <button class="btn btn-p" id="newsBtn" onclick="genNewsIdeas()" disabled>📰 Generate News Ideas</button>
+  </div>
+  <div id="newsList"></div>
+
   <div class="ph" style="margin-top:8px;">📚 All Stashed</div>
   <div id="dailyList"></div>
 </div>
@@ -814,10 +825,147 @@ function renderLib() {
     : '<div class="empty"><div class="ei">📚</div><div class="et">Nothing here</div></div>';
 }
 
+// ── NEWS SOURCES ──
+var NEWS_SOURCES = [
+  {id:'hindu',    label:'The Hindu',   emoji:'🇮🇳', rss:'https://www.thehindu.com/news/feeder/default.rss'},
+  {id:'et',       label:'Econ. Times', emoji:'📈', rss:'https://economictimes.indiatimes.com/rssfeedstopstories.cms'},
+  {id:'bbc',      label:'BBC News',    emoji:'🌐', rss:'https://feeds.bbci.co.uk/news/rss.xml'},
+  {id:'wired',    label:'Wired',       emoji:'🔬', rss:'https://www.wired.com/feed/rss'},
+  {id:'hbr',      label:'HBR',         emoji:'💼', rss:'https://feeds.hbr.org/harvardbusiness'},
+  {id:'guardian', label:'Guardian',    emoji:'🌍', rss:'https://www.theguardian.com/world/rss'},
+  {id:'tc',       label:'TechCrunch',  emoji:'🚀', rss:'https://techcrunch.com/feed/'},
+  {id:'bloomberg',label:'Bloomberg',   emoji:'💰', rss:'https://feeds.bloomberg.com/news/feed.axml'},
+];
+var selectedNewsSources = [];
+var newsIdeas = JSON.parse(localStorage.getItem('sz5-newsideas') || '[]');
+
+function renderNewsSourceGrid() {
+  selectedNewsSources = [];
+  var btn = document.getElementById('newsBtn');
+  if(btn) btn.disabled = true;
+  var grid = document.getElementById('newsSourceGrid');
+  if(!grid) return;
+  grid.innerHTML = NEWS_SOURCES.map(function(s) {
+    return '<div class="int-item" data-id="'+s.id+'" onclick="toggleNewsSource(this,this.dataset.id)">' +
+      '<div style="font-size:20px;margin-bottom:4px;">'+s.emoji+'</div>' +
+      '<div style="font-size:11px;font-weight:700;line-height:1.2;">'+s.label+'</div>' +
+      '</div>';
+  }).join('');
+}
+
+function toggleNewsSource(el, id) {
+  var idx = selectedNewsSources.indexOf(id);
+  if(idx >= 0) { selectedNewsSources.splice(idx, 1); el.classList.remove('on'); }
+  else { selectedNewsSources.push(id); el.classList.add('on'); }
+  var btn = document.getElementById('newsBtn');
+  if(btn) btn.disabled = selectedNewsSources.length === 0;
+}
+
+async function fetchRSS(url) {
+  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+  var r = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+  if(!r.ok) throw new Error('Fetch failed');
+  var data = await r.json();
+  var txt = data.contents || '';
+  // Parse titles and descriptions from RSS XML
+  var items = [];
+  var titleRe = /<item[^>]*>[\s\S]*?<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>[\s\S]*?(?:<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>)?[\s\S]*?<\/item>/g;
+  var m;
+  while((m = titleRe.exec(txt)) !== null && items.length < 8) {
+    var title = m[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#\d+;/g,'').trim();
+    var desc = (m[2]||'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#\d+;/g,'').trim().substring(0,300);
+    if(title && title.length > 10) items.push({title:title, desc:desc});
+  }
+  return items;
+}
+
+async function genNewsIdeas() {
+  if(!selectedNewsSources.length) { toast('⚠️ Pick at least one source','warn'); return; }
+  var btn = document.getElementById('newsBtn');
+  var ldr = document.getElementById('newsLdr');
+  var ldrMsg = document.getElementById('newsLdrMsg');
+  if(btn) btn.disabled = true;
+  if(ldr) ldr.classList.add('on');
+  newsIdeas = [];
+  document.getElementById('newsList').innerHTML = '';
+  var today = new Date().toISOString().split('T')[0];
+
+  for(var i = 0; i < selectedNewsSources.length; i++) {
+    var srcId = selectedNewsSources[i];
+    var src = NEWS_SOURCES.find(function(s){return s.id===srcId;});
+    if(!src) continue;
+    if(ldrMsg) ldrMsg.textContent = 'Fetching ' + src.label + '…';
+    try {
+      var items = await fetchRSS(src.rss);
+      if(!items.length) { toast('⚠️ Could not fetch '+src.label,'warn'); continue; }
+      var headlines = items.map(function(it,i){ return (i+1)+'. '+it.title+(it.desc?' - '+it.desc:''); }).join(' | ');
+      if(ldrMsg) ldrMsg.textContent = 'Extracting ideas from ' + src.label + '…';
+      var prompt = 'Based on these real headlines from ' + src.label + ', extract 4 key ideas worth thinking about deeply. Headlines:\n' + headlines + '\n\nReturn ONLY a JSON array: [{"title":"concise idea title","body":"100-150 words explaining this idea — its context, implications, why it matters and what we can learn. Reference the news story naturally.","tags":["tag1","tag2"]}]';
+      var raw = await aiCall(prompt, 'You are an expert analyst who extracts deep insights from news stories. Be thoughtful, nuanced and substantive.');
+      var mm = raw.match(/\[[\s\S]*\]/);
+      if(!mm) continue;
+      var parsed = JSON.parse(mm[0]);
+      var batch = parsed.map(function(item, j) {
+        return {id:'n'+Date.now()+i+j, title:item.title, body:item.body, tags:Array.isArray(item.tags)?item.tags:[], topic:'News', src:src.emoji+' '+src.label, srcId:srcId, prov:prov, liked:false, date:today, at:new Date().toISOString()};
+      });
+      newsIdeas = newsIdeas.concat(batch);
+    } catch(err) {
+      toast('⚠️ '+src.label+': '+err.message,'warn');
+    }
+  }
+
+  localStorage.setItem('sz5-newsideas', JSON.stringify(newsIdeas));
+  renderNewsList();
+  if(newsIdeas.length) toast('📰 '+newsIdeas.length+' news ideas extracted!','ok');
+  else toast('❌ No ideas could be extracted','err');
+
+  if(btn) btn.disabled = selectedNewsSources.length === 0;
+  if(ldr) ldr.classList.remove('on');
+}
+
+function renderNewsList() {
+  var c = document.getElementById('newsList');
+  if(!c) return;
+  if(!newsIdeas.length) {
+    c.innerHTML = '';
+    return;
+  }
+  c.innerHTML = newsIdeas.map(function(idea, idx) {
+    var tagsH = (idea.tags||[]).map(function(t){return '<span class="ctag">'+esc(t)+'</span>';}).join('');
+    return '<div class="card" style="--cc:#3b82f6;border:1px solid rgba(59,130,246,.25)">' +
+      '<span class="daily-badge" style="color:#3b82f6;background:rgba(59,130,246,.12);">📰 News</span>' +
+      '<div class="ctopic" style="color:#3b82f6;">'+esc(idea.src)+'</div>' +
+      '<div class="ctitle">'+esc(idea.title)+'</div>' +
+      '<div class="cbody">'+esc(idea.body)+'</div>' +
+      (tagsH ? '<div class="ctags">'+tagsH+'</div>' : '') +
+      '<div class="cbot"><div class="csrc">'+esc(idea.src)+'</div>' +
+      '<div class="cacts">' +
+      '<button class="ca" onclick="saveNewsIdea('+idx+',this)">💾</button>' +
+      '<button class="ca" onclick="cpNews('+idx+')">📋</button>' +
+      '</div></div></div>';
+  }).join('');
+}
+
+function saveNewsIdea(idx, btn) {
+  var idea = newsIdeas[idx]; if(!idea) return;
+  var newIdea = {id:Date.now(), title:idea.title, body:idea.body, tags:idea.tags, topic:'News', src:idea.src, prov:prov, liked:false, coll:null, date:idea.date, at:new Date().toISOString()};
+  ideas = [newIdea].concat(ideas);
+  save(); updateStats(); addToRecent([newIdea]);
+  btn.textContent = '✅'; btn.disabled = true;
+  toast('💾 Saved!','ok');
+}
+
+function cpNews(idx) {
+  var idea = newsIdeas[idx]; if(!idea) return;
+  navigator.clipboard.writeText(idea.title+'\n\n'+idea.body).then(function(){toast('📋 Copied!','ok');});
+}
+
 // ── DAILY REVIEW ──
 function renderDaily() {
   renderDailyTopicPicker();
+  renderNewsSourceGrid();
   renderGenList();
+  renderNewsList();
   var today = new Date().toISOString().split('T')[0];
   // Don't auto-generate — user picks topics first
   if(!ideas.length){document.getElementById('dTitle').textContent='No ideas yet';document.getElementById('dBody').textContent='Stash some ideas first!';document.getElementById('dailyList').innerHTML='';return;}
